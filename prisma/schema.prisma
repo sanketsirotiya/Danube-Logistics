@@ -1,0 +1,526 @@
+// Danube Logistics System - Complete Database Schema
+// Based on DATABASE_SCHEMA.md
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================
+// ENUMS
+// ============================================
+
+enum PricingType {
+  FLAT
+  ITEMIZED
+}
+
+enum UserRole {
+  ADMIN
+  DISPATCHER
+  DRIVER
+  BILLING_ADMIN
+  CUSTOMER
+}
+
+enum CalculationUnit {
+  FIXED
+  PER_HOUR
+  PER_DAY
+  PER_MILE
+}
+
+enum ChargeCategory {
+  TRANSPORTATION
+  STORAGE
+  FEES
+  SURCHARGES
+}
+
+enum ContainerSize {
+  TWENTY_FT
+  FORTY_FT
+  FORTY_FIVE_FT
+}
+
+enum ContainerType {
+  DRY
+  REEFER
+  TANK
+  FLAT_RACK
+}
+
+enum ContainerCondition {
+  GOOD
+  DAMAGED
+  NEEDS_REPAIR
+}
+
+enum TruckStatus {
+  AVAILABLE
+  IN_USE
+  MAINTENANCE
+  RETIRED
+}
+
+enum DriverStatus {
+  ACTIVE
+  INACTIVE
+  ON_LEAVE
+}
+
+enum TripStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum DeliveryOrderStatus {
+  PENDING
+  ASSIGNED
+  IN_TRANSIT
+  DELIVERED
+  CANCELLED
+}
+
+enum DeliveryPriority {
+  STANDARD
+  URGENT
+  CRITICAL
+}
+
+enum SyncStatus {
+  SUCCESS
+  FAILED
+  PARTIAL
+}
+
+enum ExpenseCategory {
+  FUEL
+  TOLLS
+  REPAIRS
+  MAINTENANCE
+  MEALS
+  LODGING
+  PARKING
+  OTHER
+}
+
+enum DocumentType {
+  BOL
+  POD
+  INVOICE_COPY
+  PHOTO
+  RECEIPT
+  INSPECTION
+  OTHER
+}
+
+enum ActivityType {
+  STATUS_CHANGE
+  ASSIGNMENT_CHANGE
+  LOCATION_UPDATE
+  DOCUMENT_UPLOAD
+  EXPENSE_ADDED
+  NOTE_ADDED
+  SYSTEM_EVENT
+}
+
+// ============================================
+// MODELS
+// ============================================
+
+model Customer {
+  id              String         @id @default(uuid())
+  name            String
+  pricingType     PricingType    @map("pricing_type")
+  email           String?        @unique
+  phone           String?
+  billingAddress  Json?          @map("billing_address")
+  paymentTerms    Int            @default(30) @map("payment_terms")
+  active          Boolean        @default(true)
+  notes           String?
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+
+  // Relations
+  trips           Trip[]
+  rates           CustomerRate[]
+  invoices        Invoice[]
+  users           User[]
+  deliveryOrders  DeliveryOrder[]
+
+  @@index([pricingType])
+  @@index([active])
+  @@map("customers")
+}
+
+model CustomerRate {
+  id             String        @id @default(uuid())
+  customerId     String        @map("customer_id")
+  routeFrom      String?       @map("route_from")
+  routeTo        String?       @map("route_to")
+  containerType  ContainerSize @map("container_type")
+  flatRate       Decimal       @db.Decimal(10, 2) @map("flat_rate")
+  effectiveDate  DateTime      @map("effective_date")
+  expiresAt      DateTime?     @map("expires_at")
+  isActive       Boolean       @default(true) @map("is_active")
+  createdAt      DateTime      @default(now()) @map("created_at")
+
+  // Relations
+  customer       Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@index([isActive, effectiveDate])
+  @@map("customer_rates")
+}
+
+model User {
+  id                    String    @id @default(uuid())
+  email                 String    @unique
+  passwordHash          String    @map("password_hash")
+  role                  UserRole
+  driverId              String?   @unique @map("driver_id")
+  customerId            String?   @map("customer_id")
+  firstName             String    @map("first_name")
+  lastName              String    @map("last_name")
+  phone                 String?
+  isActive              Boolean   @default(true) @map("is_active")
+  emailVerified         Boolean   @default(false) @map("email_verified")
+  lastLoginAt           DateTime? @map("last_login_at")
+  passwordResetToken    String?   @map("password_reset_token")
+  passwordResetExpires  DateTime? @map("password_reset_expires")
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  driver                Driver?   @relation(fields: [driverId], references: [id])
+  customer              Customer? @relation(fields: [customerId], references: [id])
+
+  @@index([email])
+  @@index([role])
+  @@index([driverId])
+  @@index([customerId])
+  @@index([isActive])
+  @@map("users")
+}
+
+model ChargeType {
+  id               String          @id @default(uuid())
+  code             String          @unique
+  name             String
+  description      String?
+  calculationUnit  CalculationUnit @map("calculation_unit")
+  defaultRate      Decimal?        @db.Decimal(10, 2) @map("default_rate")
+  requiresQuantity Boolean         @default(false) @map("requires_quantity")
+  category         ChargeCategory
+  isActive         Boolean         @default(true) @map("is_active")
+  displayOrder     Int             @default(0) @map("display_order")
+  notes            String?
+  createdAt        DateTime        @default(now()) @map("created_at")
+  updatedAt        DateTime        @updatedAt @map("updated_at")
+
+  @@index([code])
+  @@index([category, isActive])
+  @@index([isActive, displayOrder])
+  @@map("charge_types")
+}
+
+model Truck {
+  id              String       @id @default(uuid())
+  plate           String       @unique
+  vin             String?      @unique
+  make            String?
+  model           String?
+  year            Int?
+  status          TruckStatus  @default(AVAILABLE)
+  currentLocation Json?        @map("current_location")
+  notes           String?
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt       DateTime     @updatedAt @map("updated_at")
+
+  // Relations
+  trips           Trip[]
+
+  @@index([status])
+  @@map("trucks")
+}
+
+model Driver {
+  id            String        @id @default(uuid())
+  name          String
+  license       String        @unique
+  licenseExpiry DateTime?     @map("license_expiry")
+  phone         String?
+  email         String?
+  status        DriverStatus  @default(ACTIVE)
+  hireDate      DateTime?     @map("hire_date")
+  notes         String?
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  trips         Trip[]
+  user          User?
+
+  @@index([status])
+  @@map("drivers")
+}
+
+model Terminal {
+  id                  String    @id @default(uuid())
+  name                String
+  code                String?   @unique
+  address             Json?
+  apiEndpoint         String?   @map("api_endpoint")
+  apiKey              String?   @map("api_key")
+  apiConfig           Json?     @map("api_config")
+  syncEnabled         Boolean   @default(false) @map("sync_enabled")
+  syncIntervalMinutes Int       @default(5) @map("sync_interval_minutes")
+  lastSyncedAt        DateTime? @map("last_synced_at")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  containers          Container[]
+  apiSyncLogs         ApiSyncLog[]
+
+  @@map("terminals")
+}
+
+model Container {
+  id                 String             @id @default(uuid())
+  number             String             @unique
+  size               ContainerSize
+  type               ContainerType
+  terminalId         String?            @map("terminal_id")
+  available          Boolean            @default(true)
+  condition          ContainerCondition @default(GOOD)
+  lastInspectionDate DateTime?          @map("last_inspection_date")
+  notes              String?
+  createdAt          DateTime           @default(now()) @map("created_at")
+  updatedAt          DateTime           @updatedAt @map("updated_at")
+
+  // Relations
+  terminal           Terminal?          @relation(fields: [terminalId], references: [id])
+  trips              Trip[]
+
+  @@index([terminalId])
+  @@index([available])
+  @@index([number])
+  @@map("containers")
+}
+
+model Trip {
+  id                String     @id @default(uuid())
+  customerId        String     @map("customer_id")
+  truckId           String     @map("truck_id")
+  driverId          String     @map("driver_id")
+  containerId       String     @map("container_id")
+  pickupLocation    String     @map("pickup_location")
+  pickupTime        DateTime?  @map("pickup_time")
+  dropoffLocation   String     @map("dropoff_location")
+  dropoffTime       DateTime?  @map("dropoff_time")
+  status            TripStatus @default(SCHEDULED)
+  distanceMiles     Decimal?   @db.Decimal(8, 2) @map("distance_miles")
+  route             Json?
+  chassisReceivedAt DateTime?  @map("chassis_received_at")
+  chassisReturnedAt DateTime?  @map("chassis_returned_at")
+  notes             String?
+  createdAt         DateTime   @default(now()) @map("created_at")
+  updatedAt         DateTime   @updatedAt @map("updated_at")
+
+  // Relations
+  customer          Customer         @relation(fields: [customerId], references: [id])
+  truck             Truck            @relation(fields: [truckId], references: [id])
+  driver            Driver           @relation(fields: [driverId], references: [id])
+  container         Container        @relation(fields: [containerId], references: [id])
+  invoice           Invoice?
+  deliveryOrder     DeliveryOrder?
+  expenses          TripExpense[]
+  documents         TripDocument[]
+  activityLogs      TripActivityLog[]
+
+  @@index([customerId])
+  @@index([truckId])
+  @@index([driverId])
+  @@index([status])
+  @@index([pickupTime, dropoffTime])
+  @@map("trips")
+}
+
+model TripExpense {
+  id          String          @id @default(uuid())
+  tripId      String          @map("trip_id")
+  category    ExpenseCategory
+  description String
+  amount      Decimal         @db.Decimal(10, 2)
+  receiptUrl  String?         @map("receipt_url")
+  paidBy      String?         @map("paid_by")
+  paidAt      DateTime        @default(now()) @map("paid_at")
+  notes       String?
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+
+  // Relations
+  trip        Trip            @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@index([tripId])
+  @@index([category])
+  @@index([paidAt])
+  @@map("trip_expenses")
+}
+
+model TripDocument {
+  id           String       @id @default(uuid())
+  tripId       String       @map("trip_id")
+  type         DocumentType
+  title        String
+  description  String?
+  fileUrl      String       @map("file_url")
+  fileName     String       @map("file_name")
+  fileSize     Int?         @map("file_size")
+  mimeType     String?      @map("mime_type")
+  uploadedBy   String?      @map("uploaded_by")
+  uploadedAt   DateTime     @default(now()) @map("uploaded_at")
+  createdAt    DateTime     @default(now()) @map("created_at")
+
+  // Relations
+  trip         Trip         @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@index([tripId])
+  @@index([type])
+  @@index([uploadedAt])
+  @@map("trip_documents")
+}
+
+model TripActivityLog {
+  id           String       @id @default(uuid())
+  tripId       String       @map("trip_id")
+  activityType ActivityType @map("activity_type")
+  description  String
+  oldValue     String?      @map("old_value")
+  newValue     String?      @map("new_value")
+  performedBy  String?      @map("performed_by")
+  metadata     Json?
+  createdAt    DateTime     @default(now()) @map("created_at")
+
+  // Relations
+  trip         Trip         @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@index([tripId])
+  @@index([activityType])
+  @@index([createdAt])
+  @@map("trip_activity_logs")
+}
+
+model Invoice {
+  id             String      @id @default(uuid())
+  invoiceNumber  String      @unique @map("invoice_number")
+  tripId         String      @unique @map("trip_id")
+  customerId     String      @map("customer_id")
+  pricingType    PricingType @map("pricing_type")
+  lineItems      Json        @map("line_items")
+  subtotal       Decimal     @db.Decimal(10, 2)
+  taxRate        Decimal     @default(0) @db.Decimal(5, 2) @map("tax_rate")
+  taxAmount      Decimal     @default(0) @db.Decimal(10, 2) @map("tax_amount")
+  totalAmount    Decimal     @db.Decimal(10, 2) @map("total_amount")
+  dueDate        DateTime    @map("due_date")
+  paid           Boolean     @default(false)
+  paidAt         DateTime?   @map("paid_at")
+  paymentMethod  String?     @map("payment_method")
+  notes          String?
+  createdAt      DateTime    @default(now()) @map("created_at")
+  updatedAt      DateTime    @updatedAt @map("updated_at")
+
+  // Relations
+  trip           Trip        @relation(fields: [tripId], references: [id])
+  customer       Customer    @relation(fields: [customerId], references: [id])
+
+  @@index([customerId])
+  @@index([tripId])
+  @@index([paid])
+  @@index([dueDate])
+  @@map("invoices")
+}
+
+model DeliveryOrder {
+  id                  String              @id @default(uuid())
+  orderNumber         String              @unique @map("order_number")
+  customerId          String              @map("customer_id")
+  containerNumber     String?             @map("container_number")
+  containerSize       ContainerSize?      @map("container_size")
+  containerType       ContainerType?      @map("container_type")
+  status              DeliveryOrderStatus @default(PENDING)
+  priority            DeliveryPriority    @default(STANDARD)
+
+  // Locations
+  portOfLoading       String              @map("port_of_loading")
+  deliveryAddress     String              @map("delivery_address")
+  deliveryCity        String?             @map("delivery_city")
+  deliveryState       String?             @map("delivery_state")
+  deliveryZip         String?             @map("delivery_zip")
+
+  // Dates
+  requestedPickupDate DateTime?           @map("requested_pickup_date")
+  requestedDeliveryDate DateTime?         @map("requested_delivery_date")
+  actualPickupDate    DateTime?           @map("actual_pickup_date")
+  actualDeliveryDate  DateTime?           @map("actual_delivery_date")
+
+  // References
+  customerReference   String?             @map("customer_reference")
+  bookingNumber       String?             @map("booking_number")
+  billOfLading        String?             @map("bill_of_lading")
+
+  // Assignment
+  tripId              String?             @unique @map("trip_id")
+  assignedDriverId    String?             @map("assigned_driver_id")
+  assignedTruckId     String?             @map("assigned_truck_id")
+
+  // Additional Details
+  cargoDescription    String?             @map("cargo_description")
+  weight              Decimal?            @db.Decimal(10, 2)
+  specialInstructions String?             @map("special_instructions")
+  notes               String?
+
+  createdAt           DateTime            @default(now()) @map("created_at")
+  updatedAt           DateTime            @updatedAt @map("updated_at")
+
+  // Relations
+  customer            Customer            @relation(fields: [customerId], references: [id])
+  trip                Trip?               @relation(fields: [tripId], references: [id])
+
+  @@index([customerId])
+  @@index([status])
+  @@index([priority])
+  @@index([orderNumber])
+  @@index([containerNumber])
+  @@index([requestedDeliveryDate])
+  @@map("delivery_orders")
+}
+
+model ApiSyncLog {
+  id                 String     @id @default(uuid())
+  terminalId         String     @map("terminal_id")
+  syncStartedAt      DateTime   @map("sync_started_at")
+  syncCompletedAt    DateTime?  @map("sync_completed_at")
+  status             SyncStatus
+  containersFetched  Int        @default(0) @map("containers_fetched")
+  containersUpdated  Int        @default(0) @map("containers_updated")
+  containersCreated  Int        @default(0) @map("containers_created")
+  errorMessage       String?    @map("error_message")
+  errorDetails       Json?      @map("error_details")
+  responseTimeMs     Int?       @map("response_time_ms")
+  createdAt          DateTime   @default(now()) @map("created_at")
+
+  // Relations
+  terminal           Terminal   @relation(fields: [terminalId], references: [id])
+
+  @@index([terminalId])
+  @@index([status, syncStartedAt])
+  @@map("api_sync_logs")
+}
