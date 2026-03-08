@@ -1,5 +1,5 @@
 import { apiClient } from '@/lib/api/client';
-import type { Invoice, CreateInvoiceInput } from '@/lib/types';
+import type { Invoice, CreateInvoiceInput, UpdateInvoiceInput } from '@/lib/types';
 
 export const invoicesService = {
   getAll: () =>
@@ -14,7 +14,7 @@ export const invoicesService = {
       body: JSON.stringify(data),
     }),
 
-  update: (id: string, data: Partial<CreateInvoiceInput>) =>
+  update: (id: string, data: Omit<UpdateInvoiceInput, 'id'>) =>
     apiClient<Invoice>(`/invoices/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
