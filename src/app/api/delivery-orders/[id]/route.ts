@@ -51,7 +51,10 @@ export async function GET(
       );
     }
 
-    return NextResponse.json(deliveryOrder);
+    return NextResponse.json({
+      ...deliveryOrder,
+      weight: deliveryOrder.weight != null ? Number(deliveryOrder.weight) : null,
+    });
   } catch (error) {
     console.error('Error fetching delivery order:', error);
     return NextResponse.json(
@@ -107,7 +110,10 @@ export async function PUT(
       },
     });
 
-    return NextResponse.json(deliveryOrder);
+    return NextResponse.json({
+      ...deliveryOrder,
+      weight: deliveryOrder.weight != null ? Number(deliveryOrder.weight) : null,
+    });
   } catch (error) {
     console.error('Error updating delivery order:', error);
     return NextResponse.json(

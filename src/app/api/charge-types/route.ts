@@ -10,7 +10,12 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json(chargeTypes);
+    const serialized = chargeTypes.map(ct => ({
+      ...ct,
+      defaultRate: ct.defaultRate != null ? Number(ct.defaultRate) : null,
+    }));
+
+    return NextResponse.json(serialized);
   } catch (error) {
     console.error('Error fetching charge types:', error);
     return NextResponse.json(

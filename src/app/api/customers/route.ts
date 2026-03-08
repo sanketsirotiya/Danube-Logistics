@@ -30,7 +30,15 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json(customers);
+    const serialized = customers.map(c => ({
+      ...c,
+      rates: c.rates.map(r => ({
+        ...r,
+        flatRate: Number(r.flatRate),
+      })),
+    }));
+
+    return NextResponse.json(serialized);
   } catch (error) {
     console.error('Error fetching customers:', error);
     return NextResponse.json(

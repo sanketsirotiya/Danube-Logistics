@@ -32,7 +32,13 @@ export async function GET(
       );
     }
 
-    return NextResponse.json(invoice);
+    return NextResponse.json({
+      ...invoice,
+      subtotal: Number(invoice.subtotal),
+      taxRate: Number(invoice.taxRate),
+      taxAmount: Number(invoice.taxAmount),
+      totalAmount: Number(invoice.totalAmount),
+    });
   } catch (error) {
     console.error('Error fetching invoice:', error);
     return NextResponse.json(
@@ -105,7 +111,13 @@ export async function PUT(
       },
     });
 
-    return NextResponse.json(invoice);
+    return NextResponse.json({
+      ...invoice,
+      subtotal: Number(invoice.subtotal),
+      taxRate: Number(invoice.taxRate),
+      taxAmount: Number(invoice.taxAmount),
+      totalAmount: Number(invoice.totalAmount),
+    });
   } catch (error: any) {
     console.error('Error updating invoice:', error);
 

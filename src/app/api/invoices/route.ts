@@ -35,7 +35,19 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json(invoices);
+    const serialized = invoices.map(inv => ({
+      ...inv,
+      subtotal: Number(inv.subtotal),
+      taxRate: Number(inv.taxRate),
+      taxAmount: Number(inv.taxAmount),
+      totalAmount: Number(inv.totalAmount),
+      trip: inv.trip ? {
+        ...inv.trip,
+        distanceMiles: inv.trip.distanceMiles != null ? Number(inv.trip.distanceMiles) : null,
+      } : null,
+    }));
+
+    return NextResponse.json(serialized);
   } catch (error) {
     console.error('Error fetching invoices:', error);
     return NextResponse.json(
@@ -104,7 +116,13 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json(invoice, { status: 201 });
+    return NextResponse.json({
+      ...invoice,
+      subtotal: Number(invoice.subtotal),
+      taxRate: Number(invoice.taxRate),
+      taxAmount: Number(invoice.taxAmount),
+      totalAmount: Number(invoice.totalAmount),
+    }, { status: 201 });
   } catch (error: any) {
     console.error('Error creating invoice:', error);
 

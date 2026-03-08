@@ -49,7 +49,12 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json(trips);
+    const serialized = trips.map(trip => ({
+      ...trip,
+      distanceMiles: trip.distanceMiles != null ? Number(trip.distanceMiles) : null,
+    }));
+
+    return NextResponse.json(serialized);
   } catch (error) {
     console.error('Error fetching trips:', error);
     return NextResponse.json(
@@ -153,7 +158,10 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json(trip, { status: 201 });
+    return NextResponse.json({
+      ...trip,
+      distanceMiles: trip.distanceMiles != null ? Number(trip.distanceMiles) : null,
+    }, { status: 201 });
   } catch (error: any) {
     console.error('Error creating trip:', error);
 

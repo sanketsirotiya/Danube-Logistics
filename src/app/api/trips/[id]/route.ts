@@ -28,7 +28,10 @@ export async function GET(
       );
     }
 
-    return NextResponse.json(trip);
+    return NextResponse.json({
+      ...trip,
+      distanceMiles: trip.distanceMiles != null ? Number(trip.distanceMiles) : null,
+    });
   } catch (error) {
     console.error('Error fetching trip:', error);
     return NextResponse.json(
@@ -152,7 +155,10 @@ export async function PUT(
       });
     }
 
-    return NextResponse.json(trip);
+    return NextResponse.json({
+      ...trip,
+      distanceMiles: trip.distanceMiles != null ? Number(trip.distanceMiles) : null,
+    });
   } catch (error: any) {
     console.error('Error updating trip:', error);
 

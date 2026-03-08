@@ -35,7 +35,12 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json(deliveryOrders);
+    const serialized = deliveryOrders.map(order => ({
+      ...order,
+      weight: order.weight != null ? Number(order.weight) : null,
+    }));
+
+    return NextResponse.json(serialized);
   } catch (error) {
     console.error('Error fetching delivery orders:', error);
     return NextResponse.json(
@@ -109,7 +114,10 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json(deliveryOrder, { status: 201 });
+    return NextResponse.json({
+      ...deliveryOrder,
+      weight: deliveryOrder.weight != null ? Number(deliveryOrder.weight) : null,
+    }, { status: 201 });
   } catch (error) {
     console.error('Error creating delivery order:', error);
     return NextResponse.json(
