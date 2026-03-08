@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    const { name, contactName, email, phone, pricingType, billingAddress, paymentTerms } = body;
+    const { name, email, phone, pricingType, billingAddress, paymentTerms } = body;
 
     // Validation
     if (!name || !email) {
@@ -58,7 +58,6 @@ export async function POST(request: NextRequest) {
     const customer = await prisma.customer.create({
       data: {
         name,
-        contactName: contactName || null,
         email,
         phone: phone || null,
         pricingType: pricingType || 'FLAT',

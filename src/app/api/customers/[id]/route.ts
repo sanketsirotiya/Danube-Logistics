@@ -50,7 +50,7 @@ export async function PUT(
     const { id } = await params;
     const body = await request.json();
 
-    const { name, contactName, email, phone, pricingType, billingAddress, paymentTerms } = body;
+    const { name, email, phone, pricingType, billingAddress, paymentTerms } = body;
 
     // Check if customer exists
     const existingCustomer = await prisma.customer.findUnique({
@@ -68,7 +68,6 @@ export async function PUT(
       where: { id },
       data: {
         name: name || existingCustomer.name,
-        contactName: contactName !== undefined ? contactName : existingCustomer.contactName,
         email: email || existingCustomer.email,
         phone: phone !== undefined ? phone : existingCustomer.phone,
         pricingType: pricingType || existingCustomer.pricingType,
