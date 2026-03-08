@@ -72,7 +72,7 @@ export async function PUT(
         category: category || existingChargeType.category,
         defaultRate: defaultRate !== undefined ? (defaultRate ? parseFloat(defaultRate) : null) : existingChargeType.defaultRate,
         isActive: isActive !== undefined ? isActive : existingChargeType.isActive,
-        displayOrder: displayOrder !== undefined ? (displayOrder ? parseInt(displayOrder) : null) : existingChargeType.displayOrder,
+        displayOrder: displayOrder !== undefined ? (displayOrder ? parseInt(displayOrder) : 0) : existingChargeType.displayOrder,
       },
     });
 
