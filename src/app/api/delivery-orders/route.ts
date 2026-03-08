@@ -41,10 +41,10 @@ export async function GET() {
     }));
 
     return NextResponse.json(serialized);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching delivery orders:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch delivery orders' },
+      { error: 'Failed to fetch delivery orders', detail: error?.message, code: error?.code },
       { status: 500 }
     );
   }
