@@ -1,3 +1,5 @@
+import type { ContainerSize, ContainerType } from './container.types';
+
 export type DeliveryOrderStatus = 'PENDING' | 'ASSIGNED' | 'IN_TRANSIT' | 'DELIVERED' | 'CANCELLED';
 export type DeliveryPriority = 'STANDARD' | 'URGENT' | 'CRITICAL';
 

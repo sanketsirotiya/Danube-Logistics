@@ -4,6 +4,6 @@ export * from './driver.types';
 export * from './truck.types';
 export * from './trip.types';
 export * from './invoice.types';
-export * from './delivery-order.types';
 export * from './container.types';
+export * from './delivery-order.types';
 export * from './dashboard.types';
