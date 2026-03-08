@@ -9,7 +9,6 @@ import type { Customer } from '@/lib/types';
 
 type FormData = {
   name: string;
-  contactName: string;
   email: string;
   phone: string;
   pricingType: string;
@@ -27,7 +26,6 @@ export default function CustomersPage() {
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [formData, setFormData] = useState<FormData>({
     name: '',
-    contactName: '',
     email: '',
     phone: '',
     pricingType: 'FLAT',
@@ -52,7 +50,6 @@ export default function CustomersPage() {
 
       const customerData = {
         name: formData.name,
-        contactName: formData.contactName || undefined,
         email: formData.email,
         phone: formData.phone || undefined,
         pricingType: formData.pricingType as 'FLAT' | 'ITEMIZED',
@@ -76,7 +73,6 @@ export default function CustomersPage() {
     setEditingCustomer(customer);
     setFormData({
       name: customer.name,
-      contactName: customer.contactName || '',
       email: customer.email,
       phone: customer.phone || '',
       pricingType: customer.pricingType,
@@ -100,7 +96,6 @@ export default function CustomersPage() {
   const resetForm = () => {
     setFormData({
       name: '',
-      contactName: '',
       email: '',
       phone: '',
       pricingType: 'FLAT',
@@ -211,19 +206,6 @@ export default function CustomersPage() {
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="ABC Logistics"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Contact Name
-                </label>
-                <input
-                  type="text"
-                  value={formData.contactName}
-                  onChange={(e) => setFormData({ ...formData, contactName: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="John Smith"
                 />
               </div>
 
@@ -373,8 +355,7 @@ export default function CustomersPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <div className="text-gray-900">{customer.contactName || '-'}</div>
-                      <div className="text-gray-500">{customer.email}</div>
+                      <div className="text-gray-900">{customer.email}</div>
                       <div className="text-xs text-gray-400">{customer.phone || '-'}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

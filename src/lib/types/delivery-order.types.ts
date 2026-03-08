@@ -1,7 +1,5 @@
 export type DeliveryOrderStatus = 'PENDING' | 'ASSIGNED' | 'IN_TRANSIT' | 'DELIVERED' | 'CANCELLED';
-export type DeliveryPriority = 'STANDARD' | 'URGENT' | 'EXPEDITED';
-export type ContainerSize = 'TWENTY' | 'FORTY' | 'FORTY_HC' | 'FORTY_FIVE';
-export type ContainerType = 'DRY' | 'REFRIGERATED' | 'OPEN_TOP' | 'FLAT_RACK' | 'TANK';
+export type DeliveryPriority = 'STANDARD' | 'URGENT' | 'CRITICAL';
 
 export interface DeliveryOrder {
   id: string;

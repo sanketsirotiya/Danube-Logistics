@@ -1,5 +1,5 @@
-export type ContainerSize = 'TWENTY' | 'FORTY' | 'FORTY_HC' | 'FORTY_FIVE';
-export type ContainerType = 'DRY' | 'REFRIGERATED' | 'OPEN_TOP' | 'FLAT_RACK' | 'TANK';
+export type ContainerSize = 'TWENTY_FT' | 'FORTY_FT' | 'FORTY_FIVE_FT';
+export type ContainerType = 'DRY' | 'REEFER' | 'TANK' | 'FLAT_RACK';
 
 export interface Container {
   id: string;

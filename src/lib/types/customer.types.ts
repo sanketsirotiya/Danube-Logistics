@@ -14,7 +14,6 @@ export interface CustomerRate {
 export interface Customer {
   id: string;
   name: string;
-  contactName: string | null;
   email: string;
   phone: string | null;
   pricingType: PricingType;
@@ -31,7 +30,6 @@ export interface Customer {
 
 export interface CreateCustomerInput {
   name: string;
-  contactName?: string;
   email: string;
   phone?: string;
   pricingType: PricingType;
