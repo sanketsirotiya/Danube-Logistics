@@ -187,7 +187,7 @@ export default function CustomersPage() {
             <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-purple-500 hover:shadow-lg transition-shadow">
               <div className="text-sm font-medium text-gray-600 mb-1">Total Routes</div>
               <div className="text-3xl font-bold text-purple-600">
-                {customers.reduce((sum, c) => sum + (c._count?.rates || 0), 0)}
+                {customers.reduce((sum, c) => sum + (c.rates?.length || 0), 0)}
               </div>
             </div>
           </div>
