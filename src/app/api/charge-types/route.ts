@@ -29,6 +29,7 @@ export async function POST(request: NextRequest) {
       name,
       code,
       description,
+      calculationUnit,
       category,
       defaultRate,
       isActive,
@@ -36,9 +37,9 @@ export async function POST(request: NextRequest) {
     } = body;
 
     // Validation
-    if (!name || !code || !category) {
+    if (!name || !code || !category || !calculationUnit) {
       return NextResponse.json(
-        { error: 'Name, code, and category are required' },
+        { error: 'Name, code, category, and calculationUnit are required' },
         { status: 400 }
       );
     }
@@ -48,6 +49,7 @@ export async function POST(request: NextRequest) {
         name,
         code: code.toUpperCase(),
         description: description || null,
+        calculationUnit,
         category,
         defaultRate: defaultRate ? parseFloat(defaultRate) : null,
         isActive: isActive !== undefined ? isActive : true,
