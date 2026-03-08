@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
         category,
         defaultRate: defaultRate ? parseFloat(defaultRate) : null,
         isActive: isActive !== undefined ? isActive : true,
-        displayOrder: displayOrder !== undefined ? parseInt(displayOrder) : null,
+        displayOrder: displayOrder !== undefined ? parseInt(displayOrder) : 0,
       },
     });
 
