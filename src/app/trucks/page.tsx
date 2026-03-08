@@ -293,11 +293,15 @@ export default function TrucksPage() {
                 </label>
                 <textarea
                   value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, notes: e.target.value.slice(0, 500) })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   rows={3}
                   placeholder="Additional notes..."
+                  maxLength={500}
                 />
+                <p className="text-xs text-gray-400 mt-1 text-right">
+                  {formData.notes.length}/500
+                </p>
               </div>
 
               <div className="md:col-span-2 flex gap-4">

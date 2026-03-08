@@ -172,7 +172,7 @@ Danube-Logistics/
 ### Data Flow
 
 ```
-User Action → React Component → TanStack Query Hook → Service Layer →
+User Action → React Component → TanStack Query Hook → Service Layer →   
 API Client → Next.js API Route → Prisma ORM → PostgreSQL
 ```
 

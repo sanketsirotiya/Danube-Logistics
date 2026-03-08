@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "Trucking logistics management system for billing, scheduling, and dispatch",
   "scripts": {
+    "postinstall": "prisma generate",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
