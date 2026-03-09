@@ -149,14 +149,14 @@ export default function DriversPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-green-50 to-slate-50">
-      <div className="max-w-7xl mx-auto p-6 sm:p-8">
+      <div className="max-w-7xl mx-auto p-4 sm:p-5">
         {/* Header */}
-        <div className="mb-8">
-          <div className="bg-gradient-to-r from-green-600 to-green-700 rounded-2xl shadow-xl p-8 mb-6">
+        <div className="mb-3">
+          <div className="bg-gradient-to-r from-green-600 to-green-700 rounded-xl shadow-md px-5 py-3 mb-3">
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                  <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="w-9 h-9 bg-white/20 rounded-lg flex items-center justify-center">
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
                 </div>
@@ -168,13 +168,13 @@ export default function DriversPage() {
               <div className="flex gap-3">
                 <a
                   href="/"
-                  className="bg-white/20 hover:bg-white/30 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 backdrop-blur-sm"
+                  className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg font-semibold transition-all duration-200 backdrop-blur-sm"
                 >
                   ← Home
                 </a>
                 <button
                   onClick={() => setShowForm(!showForm)}
-                  className="bg-white hover:bg-green-50 text-green-700 px-6 py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                  className="bg-white hover:bg-green-50 text-green-700 px-4 py-2 rounded-lg font-semibold transition-all duration-200"
                 >
                   {showForm ? 'Cancel' : '+ Add New Driver'}
                 </button>
@@ -183,26 +183,26 @@ export default function DriversPage() {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-gray-900 hover:shadow-lg transition-shadow">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+            <div className="bg-white rounded-lg shadow-sm p-3 border-l-4 border-gray-900 hover:shadow-lg transition-shadow">
               <div className="text-sm font-medium text-gray-600 mb-1">Total Drivers</div>
-              <div className="text-3xl font-bold text-gray-900">{drivers.length}</div>
+              <div className="text-2xl font-bold text-gray-900">{drivers.length}</div>
             </div>
-            <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-green-500 hover:shadow-lg transition-shadow">
+            <div className="bg-white rounded-lg shadow-sm p-3 border-l-4 border-green-500 hover:shadow-lg transition-shadow">
               <div className="text-sm font-medium text-gray-600 mb-1">Active</div>
-              <div className="text-3xl font-bold text-green-600">
+              <div className="text-2xl font-bold text-green-600">
                 {drivers.filter((d) => d.status === 'ACTIVE').length}
               </div>
             </div>
-            <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-yellow-500 hover:shadow-lg transition-shadow">
+            <div className="bg-white rounded-lg shadow-sm p-3 border-l-4 border-yellow-500 hover:shadow-lg transition-shadow">
               <div className="text-sm font-medium text-gray-600 mb-1">On Leave</div>
-              <div className="text-3xl font-bold text-yellow-600">
+              <div className="text-2xl font-bold text-yellow-600">
                 {drivers.filter((d) => d.status === 'ON_LEAVE').length}
               </div>
             </div>
-            <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-red-500 hover:shadow-lg transition-shadow">
+            <div className="bg-white rounded-lg shadow-sm p-3 border-l-4 border-red-500 hover:shadow-lg transition-shadow">
               <div className="text-sm font-medium text-gray-600 mb-1">Expiring Soon</div>
-              <div className="text-3xl font-bold text-red-600">
+              <div className="text-2xl font-bold text-red-600">
                 {drivers.filter((d) => isLicenseExpiring(d.licenseExpiry) && !isLicenseExpired(d.licenseExpiry)).length}
               </div>
             </div>
@@ -211,8 +211,8 @@ export default function DriversPage() {
 
         {/* Form */}
         {showForm && (
-          <div className="bg-white rounded-2xl shadow-xl p-8 mb-8 border border-gray-100">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+          <div className="bg-white rounded-xl shadow-md p-5 mb-4 border border-gray-100">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">
               {editingDriver ? 'Edit Driver' : 'Add New Driver'}
             </h2>
             <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -342,27 +342,27 @@ export default function DriversPage() {
         )}
 
         {/* Drivers Table */}
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+        <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-gray-200">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                     Name
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                     License
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                     License Expiry
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                     Contact
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
@@ -385,7 +385,7 @@ export default function DriversPage() {
                 ) : (
                   drivers.map((driver) => (
                     <tr key={driver.id} className="hover:bg-green-50 transition-colors duration-150">
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <div className="flex items-center">
                         <div>
                           <div className="font-medium text-gray-900">{driver.name}</div>
@@ -397,10 +397,10 @@ export default function DriversPage() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
                       {driver.license}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm">
                       {driver.licenseExpiry ? (
                         <div>
                           <div className={`${
@@ -424,11 +424,11 @@ export default function DriversPage() {
                         <span className="text-gray-400">-</span>
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
                       <div>{driver.phone || '-'}</div>
                       <div className="text-xs text-gray-500">{driver.email || '-'}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <span
                         className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(
                           driver.status
@@ -437,7 +437,7 @@ export default function DriversPage() {
                         {driver.status.replace('_', ' ')}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm font-medium">
                       <button
                         onClick={() => handleEdit(driver)}
                         className="text-blue-600 hover:text-blue-800 font-semibold mr-4 transition-colors"

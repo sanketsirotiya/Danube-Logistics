@@ -22,6 +22,7 @@ async function main() {
   await prisma.driver.deleteMany();
   await prisma.truck.deleteMany();
   await prisma.customerRate.deleteMany();
+  await prisma.customerLocation.deleteMany();
   await prisma.customer.deleteMany();
   await prisma.chargeType.deleteMany();
   console.log('✅ Cleared existing data\n');
@@ -157,6 +158,31 @@ async function main() {
     },
   });
   console.log(`✅ Created 3 customers\n`);
+
+  // 2b. Create Customer Locations
+  console.log('📍 Creating customer locations...');
+  await prisma.customerLocation.createMany({
+    data: [
+      // ABC Logistics Corp locations
+      { customerId: customer1.id, label: 'Main Warehouse', street: '123 Harbor Blvd', city: 'Newark', state: 'NJ', zip: '07114', isDefault: true },
+      { customerId: customer1.id, label: 'Distribution Center', street: '500 Frelinghuysen Ave', city: 'Newark', state: 'NJ', zip: '07114', isDefault: false },
+      { customerId: customer1.id, label: 'Elizabeth Facility', street: '200 Division St', city: 'Elizabeth', state: 'NJ', zip: '07201', isDefault: false },
+      { customerId: customer1.id, label: 'Linden Depot', street: '1000 Wood Ave', city: 'Linden', state: 'NJ', zip: '07036', isDefault: false },
+      { customerId: customer1.id, label: 'Carteret Hub', street: '75 Roosevelt Ave', city: 'Carteret', state: 'NJ', zip: '07008', isDefault: false },
+      // Pacific Imports Inc locations
+      { customerId: customer2.id, label: 'Jersey City Warehouse', street: '350 Marin Blvd', city: 'Jersey City', state: 'NJ', zip: '07302', isDefault: true },
+      { customerId: customer2.id, label: 'Kearny Storage', street: '100 Passaic Ave', city: 'Kearny', state: 'NJ', zip: '07032', isDefault: false },
+      { customerId: customer2.id, label: 'Secaucus Cross-Dock', street: '400 County Ave', city: 'Secaucus', state: 'NJ', zip: '07094', isDefault: false },
+      { customerId: customer2.id, label: 'Bayonne Terminal', street: '55 Hook Rd', city: 'Bayonne', state: 'NJ', zip: '07002', isDefault: false },
+      { customerId: customer2.id, label: 'Staten Island Depot', street: '2060 Richmond Terrace', city: 'Staten Island', state: 'NY', zip: '10302', isDefault: false },
+      // Global Trade Solutions locations
+      { customerId: customer3.id, label: 'Woodbridge DC', street: '1 Woodbridge Center Dr', city: 'Woodbridge', state: 'NJ', zip: '07095', isDefault: true },
+      { customerId: customer3.id, label: 'Edison Warehouse', street: '333 Route 1 South', city: 'Edison', state: 'NJ', zip: '08837', isDefault: false },
+      { customerId: customer3.id, label: 'Perth Amboy Yard', street: '200 Smith St', city: 'Perth Amboy', state: 'NJ', zip: '08861', isDefault: false },
+      { customerId: customer3.id, label: 'South Kearny Facility', street: '50 Hackensack Ave', city: 'Kearny', state: 'NJ', zip: '07032', isDefault: false },
+    ],
+  });
+  console.log(`✅ Created 14 customer locations\n`);
 
   // 3. Create Customer Rates (for flat rate customers)
   console.log('💰 Creating customer rates...');
@@ -428,38 +454,53 @@ async function main() {
   });
   console.log(`✅ Created 5 users\n`);
 
-  // 7. Create Terminals
+  // 7. Create Terminals (New Jersey / New York Ports)
   console.log('🏭 Creating terminals...');
   const terminal1 = await prisma.terminal.create({
     data: {
-      name: 'Port of Los Angeles Terminal',
-      code: 'POLA',
-      address: {
-        street: '425 S Palos Verdes St',
-        city: 'San Pedro',
-        state: 'CA',
-        zip: '90731',
-        country: 'USA',
-      },
+      name: 'Port Newark Container Terminal',
+      code: 'PNCT',
+      address: { street: '241 Port Newark Rd', city: 'Newark', state: 'NJ', zip: '07114', country: 'USA' },
       syncEnabled: false,
     },
   });
 
   const terminal2 = await prisma.terminal.create({
     data: {
-      name: 'Port of Long Beach Terminal',
-      code: 'POLB',
-      address: {
-        street: '415 W Ocean Blvd',
-        city: 'Long Beach',
-        state: 'CA',
-        zip: '90802',
-        country: 'USA',
-      },
+      name: 'APM Terminals Port Elizabeth',
+      code: 'APMT',
+      address: { street: '1210 Corbin St', city: 'Elizabeth', state: 'NJ', zip: '07201', country: 'USA' },
       syncEnabled: false,
     },
   });
-  console.log(`✅ Created 2 terminals\n`);
+
+  await prisma.terminal.create({
+    data: {
+      name: 'Maher Terminals Newark',
+      code: 'MAHER',
+      address: { street: 'Port Newark', city: 'Newark', state: 'NJ', zip: '07114', country: 'USA' },
+      syncEnabled: false,
+    },
+  });
+
+  await prisma.terminal.create({
+    data: {
+      name: 'GCT Bayonne',
+      code: 'GCTB',
+      address: { street: '302 Port Jersey Blvd', city: 'Bayonne', state: 'NJ', zip: '07002', country: 'USA' },
+      syncEnabled: false,
+    },
+  });
+
+  await prisma.terminal.create({
+    data: {
+      name: 'Global Container Terminal Staten Island',
+      code: 'GCTS',
+      address: { street: '300 Western Ave', city: 'Staten Island', state: 'NY', zip: '10303', country: 'USA' },
+      syncEnabled: false,
+    },
+  });
+  console.log(`✅ Created 5 NJ/NY terminals\n`);
 
   // 8. Create Containers
   console.log('📦 Creating containers...');
@@ -691,6 +732,7 @@ async function main() {
   console.log('📊 Summary:');
   console.log('   • 7 charge types');
   console.log('   • 3 customers');
+  console.log('   • 14 customer locations');
   console.log('   • 4 customer rates');
   console.log('   • 10 trucks (varied makes & statuses)');
   console.log('   • 3 drivers');

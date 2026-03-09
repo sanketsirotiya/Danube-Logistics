@@ -138,14 +138,14 @@ export default function TrucksPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-50">
-      <div className="max-w-7xl mx-auto p-6 sm:p-8">
+      <div className="max-w-7xl mx-auto p-4 sm:p-5">
         {/* Header */}
-        <div className="mb-8">
-          <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl shadow-xl p-8 mb-6">
+        <div className="mb-3">
+          <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-md px-5 py-3 mb-3">
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                  <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="w-9 h-9 bg-white/20 rounded-lg flex items-center justify-center">
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                 </div>
@@ -157,13 +157,13 @@ export default function TrucksPage() {
               <div className="flex gap-3">
                 <a
                   href="/"
-                  className="bg-white/20 hover:bg-white/30 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 backdrop-blur-sm"
+                  className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg font-semibold transition-all duration-200 backdrop-blur-sm"
                 >
                   ← Home
                 </a>
                 <button
                   onClick={() => setShowForm(!showForm)}
-                  className="bg-white hover:bg-blue-50 text-blue-700 px-6 py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                  className="bg-white hover:bg-blue-50 text-blue-700 px-4 py-2 rounded-lg font-semibold transition-all duration-200"
                 >
                   {showForm ? 'Cancel' : '+ Add New Truck'}
                 </button>
@@ -172,26 +172,26 @@ export default function TrucksPage() {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-gray-900 hover:shadow-lg transition-shadow">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+            <div className="bg-white rounded-lg shadow-sm p-3 border-l-4 border-gray-900 hover:shadow-lg transition-shadow">
               <div className="text-sm font-medium text-gray-600 mb-1">Total Trucks</div>
-              <div className="text-3xl font-bold text-gray-900">{trucks.length}</div>
+              <div className="text-2xl font-bold text-gray-900">{trucks.length}</div>
             </div>
-            <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-green-500 hover:shadow-lg transition-shadow">
+            <div className="bg-white rounded-lg shadow-sm p-3 border-l-4 border-green-500 hover:shadow-lg transition-shadow">
               <div className="text-sm font-medium text-gray-600 mb-1">Available</div>
-              <div className="text-3xl font-bold text-green-600">
+              <div className="text-2xl font-bold text-green-600">
                 {trucks.filter((t) => t.status === 'AVAILABLE').length}
               </div>
             </div>
-            <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-500 hover:shadow-lg transition-shadow">
+            <div className="bg-white rounded-lg shadow-sm p-3 border-l-4 border-blue-500 hover:shadow-lg transition-shadow">
               <div className="text-sm font-medium text-gray-600 mb-1">In Use</div>
-              <div className="text-3xl font-bold text-blue-600">
+              <div className="text-2xl font-bold text-blue-600">
                 {trucks.filter((t) => t.status === 'IN_USE').length}
               </div>
             </div>
-            <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-yellow-500 hover:shadow-lg transition-shadow">
+            <div className="bg-white rounded-lg shadow-sm p-3 border-l-4 border-yellow-500 hover:shadow-lg transition-shadow">
               <div className="text-sm font-medium text-gray-600 mb-1">Maintenance</div>
-              <div className="text-3xl font-bold text-yellow-600">
+              <div className="text-2xl font-bold text-yellow-600">
                 {trucks.filter((t) => t.status === 'MAINTENANCE').length}
               </div>
             </div>
@@ -200,8 +200,8 @@ export default function TrucksPage() {
 
         {/* Form */}
         {showForm && (
-          <div className="bg-white rounded-2xl shadow-xl p-8 mb-8 border border-gray-100">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+          <div className="bg-white rounded-xl shadow-md p-5 mb-4 border border-gray-100">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">
               {editingTruck ? 'Edit Truck' : 'Add New Truck'}
             </h2>
             <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -324,27 +324,27 @@ export default function TrucksPage() {
         )}
 
         {/* Trucks Table */}
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+        <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-gray-200">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                     Plate
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                     Make / Model
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                     Year
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                     VIN
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
@@ -367,21 +367,21 @@ export default function TrucksPage() {
                 ) : (
                   trucks.map((truck) => (
                     <tr key={truck.id} className="hover:bg-blue-50 transition-colors duration-150">
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-4 py-3 whitespace-nowrap">
                         <div className="font-bold text-gray-900">{truck.plate}</div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-gray-700 font-medium">
+                      <td className="px-4 py-3 whitespace-nowrap text-gray-700 font-medium">
                         {truck.make && truck.model
                           ? `${truck.make} ${truck.model}`
                           : truck.make || truck.model || '-'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-gray-600">
+                      <td className="px-4 py-3 whitespace-nowrap text-gray-600">
                         {truck.year || '-'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-gray-600 text-sm font-mono">
+                      <td className="px-4 py-3 whitespace-nowrap text-gray-600 text-sm font-mono">
                         {truck.vin || '-'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-4 py-3 whitespace-nowrap">
                         <span
                           className={`px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full ${getStatusColor(
                             truck.status
@@ -390,7 +390,7 @@ export default function TrucksPage() {
                           {truck.status.replace('_', ' ')}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <td className="px-4 py-3 whitespace-nowrap text-sm font-medium">
                         <button
                           onClick={() => handleEdit(truck)}
                           className="text-blue-600 hover:text-blue-800 font-semibold mr-4 transition-colors"

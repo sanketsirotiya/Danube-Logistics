@@ -7,3 +7,5 @@ export * from './invoice.types';
 export * from './container.types';
 export * from './delivery-order.types';
 export * from './dashboard.types';
+export * from './terminal.types';
+export * from './customer-location.types';

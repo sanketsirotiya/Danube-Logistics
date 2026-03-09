@@ -1,47 +1,96 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import pg from 'pg';
 
 // GET - Fetch all delivery orders
 export async function GET() {
+  const client = new pg.Client({ connectionString: process.env.DATABASE_URL });
   try {
-    const deliveryOrders = await prisma.deliveryOrder.findMany({
-      include: {
-        customer: {
-          select: {
-            name: true,
-            email: true,
-            phone: true,
-          },
-        },
-        trip: {
-          select: {
-            id: true,
-            status: true,
-            driver: {
-              select: {
-                name: true,
-              },
-            },
-            truck: {
-              select: {
-                plate: true,
-              },
-            },
-          },
-        },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+    await client.connect();
+    const sql = `
+      SELECT
+        dord.id,
+        dord.order_number AS "orderNumber",
+        dord.customer_id AS "customerId",
+        dord.container_number AS "containerNumber",
+        dord.container_size::text AS "containerSize",
+        dord.container_type::text AS "containerType",
+        dord.order_type AS "orderType",
+        dord.status::text AS status,
+        dord.priority::text AS priority,
+        dord.port_of_loading AS "portOfLoading",
+        dord.delivery_address AS "deliveryAddress",
+        dord.delivery_city AS "deliveryCity",
+        dord.delivery_state AS "deliveryState",
+        dord.delivery_zip AS "deliveryZip",
+        dord.requested_pickup_date AS "requestedPickupDate",
+        dord.requested_delivery_date AS "requestedDeliveryDate",
+        dord.actual_pickup_date AS "actualPickupDate",
+        dord.actual_delivery_date AS "actualDeliveryDate",
+        dord.customer_reference AS "customerReference",
+        dord.booking_number AS "bookingNumber",
+        dord.bill_of_lading AS "billOfLading",
+        dord.trip_id AS "tripId",
+        dord.assigned_driver_id AS "assignedDriverId",
+        dord.assigned_truck_id AS "assignedTruckId",
+        dord.weight,
+        dord.notes,
+        dord.created_at AS "createdAt",
+        dord.updated_at AS "updatedAt",
+        c.name AS "customerName",
+        c.email AS "customerEmail",
+        c.phone AS "customerPhone",
+        t.id AS "tripRelId",
+        t.status::text AS "tripStatus"
+      FROM public.delivery_orders dord
+      LEFT JOIN public.customers c ON dord.customer_id = c.id
+      LEFT JOIN public.trips t ON dord.trip_id = t.id
+      ORDER BY dord.created_at DESC
+    `;
+    const result = await client.query(sql);
+    const rows = result.rows;
 
-    const serialized = deliveryOrders.map(order => ({
-      ...order,
-      weight: order.weight != null ? Number(order.weight) : null,
+    const serialized = rows.map(row => ({
+      id: row.id,
+      orderNumber: row.orderNumber,
+      customerId: row.customerId,
+      containerNumber: row.containerNumber,
+      containerSize: row.containerSize,
+      containerType: row.containerType,
+      orderType: row.orderType,
+      status: row.status,
+      priority: row.priority,
+      portOfLoading: row.portOfLoading,
+      deliveryAddress: row.deliveryAddress,
+      deliveryCity: row.deliveryCity,
+      deliveryState: row.deliveryState,
+      deliveryZip: row.deliveryZip,
+      requestedPickupDate: row.requestedPickupDate,
+      requestedDeliveryDate: row.requestedDeliveryDate,
+      actualPickupDate: row.actualPickupDate,
+      actualDeliveryDate: row.actualDeliveryDate,
+      customerReference: row.customerReference,
+      bookingNumber: row.bookingNumber,
+      billOfLading: row.billOfLading,
+      tripId: row.tripId,
+      assignedDriverId: row.assignedDriverId,
+      assignedTruckId: row.assignedTruckId,
+      weight: row.weight != null ? Number(row.weight) : null,
+      notes: row.notes,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+      customer: {
+        name: row.customerName,
+        email: row.customerEmail,
+        phone: row.customerPhone,
+      },
+      trip: row.tripRelId ? { id: row.tripRelId, status: row.tripStatus } : null,
     }));
 
+    await client.end();
     return NextResponse.json(serialized);
   } catch (error: any) {
+    await client.end().catch(() => {});
     console.error('Error fetching delivery orders:', error);
     return NextResponse.json(
       { error: 'Failed to fetch delivery orders', detail: error?.message, code: error?.code },
@@ -88,9 +137,10 @@ export async function POST(request: NextRequest) {
         containerNumber: body.containerNumber,
         containerSize: body.containerSize,
         containerType: body.containerType,
+        orderType: body.orderType || 'IMPORT',
         status: body.status || 'PENDING',
         priority: body.priority || 'STANDARD',
-        portOfLoading: body.portOfLoading,
+        portOfLoading: body.portOfLoading || null,
         deliveryAddress: body.deliveryAddress,
         deliveryCity: body.deliveryCity,
         deliveryState: body.deliveryState,
@@ -100,9 +150,7 @@ export async function POST(request: NextRequest) {
         customerReference: body.customerReference,
         bookingNumber: body.bookingNumber,
         billOfLading: body.billOfLading,
-        cargoDescription: body.cargoDescription,
         weight: body.weight,
-        specialInstructions: body.specialInstructions,
         notes: body.notes,
       },
       include: {

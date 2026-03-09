@@ -579,6 +579,8 @@ npx prisma studio         # Open Prisma Studio (DB GUI)
 
 10. **Read before modifying** - Always read existing files before suggesting changes.
 
+11. **Never manually create tables or write raw SQL for schema changes** - ALL database schema changes (new tables, adding/removing columns, indexes) MUST go through `npx prisma migrate dev --name <migration_name>`. Never provide `CREATE TABLE`, `ALTER TABLE`, or `DROP COLUMN` statements for users to run manually on Neon or any database. Prisma generates the SQL and applies it. The migration files are committed to the repo.
+
 ## Architecture Decisions
 
 ### Why TanStack Query over MobX?

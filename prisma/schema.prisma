@@ -153,10 +153,29 @@ model Customer {
   invoices        Invoice[]
   users           User[]
   deliveryOrders  DeliveryOrder[]
+  locations       CustomerLocation[]
 
   @@index([pricingType])
   @@index([active])
   @@map("customers")
+}
+
+model CustomerLocation {
+  id         String   @id @default(uuid())
+  customerId String   @map("customer_id")
+  label      String
+  street     String
+  city       String
+  state      String
+  zip        String
+  country    String   @default("USA")
+  isDefault  Boolean  @default(false) @map("is_default")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@map("customer_locations")
 }
 
 model CustomerRate {
@@ -455,11 +474,12 @@ model DeliveryOrder {
   containerNumber     String?             @map("container_number")
   containerSize       ContainerSize?      @map("container_size")
   containerType       ContainerType?      @map("container_type")
+  orderType           String              @default("IMPORT") @map("order_type")
   status              DeliveryOrderStatus @default(PENDING)
   priority            DeliveryPriority    @default(STANDARD)
 
   // Locations
-  portOfLoading       String              @map("port_of_loading")
+  portOfLoading       String?             @map("port_of_loading")
   deliveryAddress     String              @map("delivery_address")
   deliveryCity        String?             @map("delivery_city")
   deliveryState       String?             @map("delivery_state")
@@ -482,9 +502,7 @@ model DeliveryOrder {
   assignedTruckId     String?             @map("assigned_truck_id")
 
   // Additional Details
-  cargoDescription    String?             @map("cargo_description")
   weight              Decimal?            @db.Decimal(10, 2)
-  specialInstructions String?             @map("special_instructions")
   notes               String?
 
   createdAt           DateTime            @default(now()) @map("created_at")

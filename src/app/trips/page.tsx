@@ -111,9 +111,9 @@ export default function TripsPage() {
         deliveryOrderId: orderId,
         customerId: selectedOrder.customerId,
         containerId: matchingContainerId,
-        pickupLocation: selectedOrder.portOfLoading,
+        pickupLocation: selectedOrder.portOfLoading || selectedOrder.deliveryAddress,
         dropoffLocation: selectedOrder.deliveryAddress,
-        notes: `Delivery Order: ${selectedOrder.orderNumber}\nContainer: ${selectedOrder.containerNumber || 'Not specified'} - ${selectedOrder.containerSize || ''} ${selectedOrder.containerType || ''}\n${selectedOrder.specialInstructions || ''}\n${selectedOrder.notes || ''}`.trim(),
+        notes: `Delivery Order: ${selectedOrder.orderNumber}\nContainer: ${selectedOrder.containerNumber || 'Not specified'} - ${selectedOrder.containerSize || ''} ${selectedOrder.containerType || ''}\n${selectedOrder.notes || ''}`.trim(),
       });
     }
   };
@@ -237,14 +237,14 @@ export default function TripsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-orange-50 to-slate-50">
-      <div className="max-w-7xl mx-auto p-6 sm:p-8">
+      <div className="max-w-7xl mx-auto p-4 sm:p-5">
         {/* Header */}
-        <div className="mb-8">
-          <div className="bg-gradient-to-r from-orange-600 to-orange-700 rounded-2xl shadow-xl p-8 mb-6">
+        <div className="mb-3">
+          <div className="bg-gradient-to-r from-orange-600 to-orange-700 rounded-xl shadow-md px-5 py-3 mb-3">
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                  <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="w-9 h-9 bg-white/20 rounded-lg flex items-center justify-center">
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                   </svg>
                 </div>
@@ -256,13 +256,13 @@ export default function TripsPage() {
               <div className="flex gap-3">
                 <a
                   href="/"
-                  className="bg-white/20 hover:bg-white/30 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 backdrop-blur-sm"
+                  className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg font-semibold transition-all duration-200 backdrop-blur-sm"
                 >
                   ← Home
                 </a>
                 <button
                   onClick={() => setShowForm(!showForm)}
-                  className="bg-white hover:bg-orange-50 text-orange-700 px-6 py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                  className="bg-white hover:bg-orange-50 text-orange-700 px-4 py-2 rounded-lg font-semibold transition-all duration-200"
                 >
                   {showForm ? 'Cancel' : '+ Add New Trip'}
                 </button>
@@ -271,26 +271,26 @@ export default function TripsPage() {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-gray-900 hover:shadow-lg transition-shadow">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+            <div className="bg-white rounded-lg shadow-sm p-3 border-l-4 border-gray-900 hover:shadow-lg transition-shadow">
               <div className="text-sm font-medium text-gray-600 mb-1">Total Trips</div>
-              <div className="text-3xl font-bold text-gray-900">{trips.length}</div>
+              <div className="text-2xl font-bold text-gray-900">{trips.length}</div>
             </div>
-            <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-500 hover:shadow-lg transition-shadow">
+            <div className="bg-white rounded-lg shadow-sm p-3 border-l-4 border-blue-500 hover:shadow-lg transition-shadow">
               <div className="text-sm font-medium text-gray-600 mb-1">Scheduled</div>
-              <div className="text-3xl font-bold text-blue-600">
+              <div className="text-2xl font-bold text-blue-600">
                 {trips.filter((t) => t.status === 'SCHEDULED').length}
               </div>
             </div>
-            <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-yellow-500 hover:shadow-lg transition-shadow">
+            <div className="bg-white rounded-lg shadow-sm p-3 border-l-4 border-yellow-500 hover:shadow-lg transition-shadow">
               <div className="text-sm font-medium text-gray-600 mb-1">In Progress</div>
-              <div className="text-3xl font-bold text-yellow-600">
+              <div className="text-2xl font-bold text-yellow-600">
                 {trips.filter((t) => t.status === 'IN_PROGRESS').length}
               </div>
             </div>
-            <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-green-500 hover:shadow-lg transition-shadow">
+            <div className="bg-white rounded-lg shadow-sm p-3 border-l-4 border-green-500 hover:shadow-lg transition-shadow">
               <div className="text-sm font-medium text-gray-600 mb-1">Completed</div>
-              <div className="text-3xl font-bold text-green-600">
+              <div className="text-2xl font-bold text-green-600">
                 {trips.filter((t) => t.status === 'COMPLETED').length}
               </div>
             </div>
@@ -299,8 +299,8 @@ export default function TripsPage() {
 
         {/* Form */}
         {showForm && (
-          <div className="bg-white rounded-2xl shadow-xl p-8 mb-8 border border-gray-100">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+          <div className="bg-white rounded-xl shadow-md p-5 mb-4 border border-gray-100">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">
               {editingTrip ? 'Edit Trip' : 'Add New Trip'}
             </h2>
             <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -548,7 +548,7 @@ export default function TripsPage() {
         )}
 
         {/* Trips Table */}
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+        <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-gray-200">
