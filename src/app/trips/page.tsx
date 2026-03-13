@@ -10,15 +10,21 @@ import { useCustomers } from '@/lib/hooks/customers/useCustomers';
 import { useTrucks } from '@/lib/hooks/trucks/useTrucks';
 import { useDrivers } from '@/lib/hooks/drivers/useDrivers';
 import { useContainers } from '@/lib/hooks/containers/useContainers';
-import { useDeliveryOrders } from '@/lib/hooks/delivery-orders/useDeliveryOrders';
+import { useImportOrders } from '@/lib/hooks/import-orders/useImportOrders';
+import { useExportOrders } from '@/lib/hooks/export-orders/useExportOrders';
+import { useChassis } from '@/lib/hooks/chassis/useChassis';
 import type { Trip } from '@/lib/types';
+import { CHASSIS_SIZE_LABELS } from '@/lib/types';
 
 type FormData = {
-  deliveryOrderId: string;
+  linkedOrderId: string;
+  linkedOrderType: 'IMPORT' | 'EXPORT' | '';
+  linkedContainerSize: string;
   customerId: string;
   truckId: string;
   driverId: string;
   containerId: string;
+  chassisId: string;
   pickupLocation: string;
   pickupTime: string;
   dropoffLocation: string;
@@ -46,7 +52,9 @@ export default function TripsPage() {
   const { data: trucksData = [] } = useTrucks();
   const { data: driversData = [] } = useDrivers();
   const { data: containersData = [] } = useContainers();
-  const { data: deliveryOrdersData = [] } = useDeliveryOrders();
+  const { data: importOrdersData = [] } = useImportOrders();
+  const { data: exportOrdersData = [] } = useExportOrders();
+  const { data: chassisData = [] } = useChassis();
 
   const [showForm, setShowForm] = useState(false);
   const [editingTrip, setEditingTrip] = useState<Trip | null>(null);
@@ -56,16 +64,24 @@ export default function TripsPage() {
   const trucks: SelectOption[] = trucksData.map((t: any) => ({ id: t.id, label: `${t.plate} - ${t.make} ${t.model}` }));
   const drivers: SelectOption[] = driversData.map((d: any) => ({ id: d.id, label: d.name }));
   const containers: SelectOption[] = containersData.map((c: any) => ({ id: c.id, label: `${c.number} (${c.size})` }));
-  const deliveryOrders = deliveryOrdersData.filter(
-    (order: any) => !order.tripId && (order.status === 'PENDING' || order.status === 'ASSIGNED')
+
+  // Combine unassigned orders for the trip form dropdown
+  const openImportOrders = importOrdersData.filter(
+    (o: any) => !o.tripId && (o.status === 'PENDING' || o.status === 'ASSIGNED')
+  );
+  const openExportOrders = exportOrdersData.filter(
+    (o: any) => !o.tripId && (o.status === 'PENDING' || o.status === 'ASSIGNED')
   );
 
   const [formData, setFormData] = useState<FormData>({
-    deliveryOrderId: '',
+    linkedOrderId: '',
+    linkedOrderType: '',
+    linkedContainerSize: '',
     customerId: '',
     truckId: '',
     driverId: '',
     containerId: '',
+    chassisId: '',
     pickupLocation: '',
     pickupTime: '',
     dropoffLocation: '',
@@ -77,44 +93,65 @@ export default function TripsPage() {
     notes: '',
   });
 
-  const handleDeliveryOrderSelect = (orderId: string) => {
-    if (!orderId) {
-      // Reset form if no order selected
+  const availableChassis = chassisData.filter((c: any) =>
+    c.isAvailable && c.isActive &&
+    (!formData.linkedContainerSize || c.size === formData.linkedContainerSize)
+  );
+
+  const handleOrderSelect = (value: string) => {
+    // value format: "IMPORT:id" or "EXPORT:id" or ""
+    if (!value) {
       setFormData({
         ...formData,
-        deliveryOrderId: '',
+        linkedOrderId: '',
+        linkedOrderType: '',
+        linkedContainerSize: '',
         pickupLocation: '',
         dropoffLocation: '',
         notes: '',
         containerId: '',
+        chassisId: '',
       });
       return;
     }
 
-    const selectedOrder = deliveryOrders.find((order) => order.id === orderId);
-    if (selectedOrder) {
-      // Try to find matching container by container number
-      let matchingContainerId = '';
-      if (selectedOrder.containerNumber) {
-        const matchingContainer = containers.find(
-          (c) => c.label.includes(selectedOrder.containerNumber || '')
-        );
-        if (matchingContainer) {
-          matchingContainerId = matchingContainer.id;
-        }
-        // Note: Container should exist since it's auto-created with delivery order
-        // If not found, user can select manually from dropdown
-      }
+    const [type, orderId] = value.split(':') as ['IMPORT' | 'EXPORT', string];
 
-      setFormData({
-        ...formData,
-        deliveryOrderId: orderId,
-        customerId: selectedOrder.customerId,
-        containerId: matchingContainerId,
-        pickupLocation: selectedOrder.portOfLoading || selectedOrder.deliveryAddress,
-        dropoffLocation: selectedOrder.deliveryAddress,
-        notes: `Delivery Order: ${selectedOrder.orderNumber}\nContainer: ${selectedOrder.containerNumber || 'Not specified'} - ${selectedOrder.containerSize || ''} ${selectedOrder.containerType || ''}\n${selectedOrder.notes || ''}`.trim(),
-      });
+    if (type === 'IMPORT') {
+      const order = openImportOrders.find((o: any) => o.id === orderId);
+      if (order) {
+        let matchingContainerId = '';
+        const matchingContainer = containers.find((c) => c.label.includes(order.containerNumber));
+        if (matchingContainer) matchingContainerId = matchingContainer.id;
+        setFormData({
+          ...formData,
+          linkedOrderId: orderId,
+          linkedOrderType: 'IMPORT',
+          linkedContainerSize: order.containerSize || '',
+          customerId: order.customerId,
+          containerId: matchingContainerId,
+          chassisId: '',
+          pickupLocation: order.portOfLoading,
+          dropoffLocation: order.deliveryAddress,
+          notes: `Import Order: ${order.orderNumber}\nContainer: ${order.containerNumber} - ${order.containerSize} ${order.containerType}\n${order.notes || ''}`.trim(),
+        });
+      }
+    } else if (type === 'EXPORT') {
+      const order = openExportOrders.find((o: any) => o.id === orderId);
+      if (order) {
+        setFormData({
+          ...formData,
+          linkedOrderId: orderId,
+          linkedOrderType: 'EXPORT',
+          linkedContainerSize: order.containerSize || '',
+          customerId: order.customerId,
+          containerId: '',
+          chassisId: '',
+          pickupLocation: order.pickupAddress,
+          dropoffLocation: order.portOfDischarge,
+          notes: `Export Order: ${order.orderNumber}\nBooking: ${order.bookingNumber}\nContainer: ${order.containerSize} ${order.containerType}\n${order.notes || ''}`.trim(),
+        });
+      }
     }
   };
 
@@ -123,11 +160,13 @@ export default function TripsPage() {
 
     try {
       const tripData = {
-        deliveryOrderId: formData.deliveryOrderId || undefined,
+        importOrderId: formData.linkedOrderType === 'IMPORT' ? formData.linkedOrderId || undefined : undefined,
+        exportOrderId: formData.linkedOrderType === 'EXPORT' ? formData.linkedOrderId || undefined : undefined,
         customerId: formData.customerId,
         truckId: formData.truckId,
         driverId: formData.driverId,
-        containerId: formData.containerId,
+        containerId: formData.containerId || undefined,
+        chassisId: formData.chassisId || undefined,
         pickupLocation: formData.pickupLocation,
         pickupTime: formData.pickupTime || undefined,
         dropoffLocation: formData.dropoffLocation,
@@ -154,11 +193,13 @@ export default function TripsPage() {
   const handleEdit = (trip: Trip) => {
     setEditingTrip(trip);
     setFormData({
-      deliveryOrderId: trip.deliveryOrderId || '',
+      linkedOrderId: '',
+      linkedOrderType: '',
       customerId: trip.customerId,
       truckId: trip.truckId,
       driverId: trip.driverId,
       containerId: trip.containerId,
+      chassisId: (trip as any).chassisId || '',
       pickupLocation: trip.pickupLocation,
       pickupTime: trip.pickupTime ? trip.pickupTime.split('T')[0] + 'T' + trip.pickupTime.split('T')[1].substring(0, 5) : '',
       dropoffLocation: trip.dropoffLocation,
@@ -185,11 +226,14 @@ export default function TripsPage() {
 
   const resetForm = () => {
     setFormData({
-      deliveryOrderId: '',
+      linkedOrderId: '',
+      linkedOrderType: '',
+      linkedContainerSize: '',
       customerId: '',
       truckId: '',
       driverId: '',
       containerId: '',
+      chassisId: '',
       pickupLocation: '',
       pickupTime: '',
       dropoffLocation: '',
@@ -307,36 +351,39 @@ export default function TripsPage() {
               {/* Delivery Order Selection - Spans full width */}
               <div className="md:col-span-2 bg-cyan-50 border border-cyan-200 rounded-lg p-4">
                 <label className="block text-sm font-medium text-cyan-900 mb-2">
-                  📦 Link to Delivery Order (Optional)
+                  📦 Link to Import / Export Order *
                 </label>
                 <select
-                  value={formData.deliveryOrderId}
-                  onChange={(e) => handleDeliveryOrderSelect(e.target.value)}
+                  required
+                  value={formData.linkedOrderId ? `${formData.linkedOrderType}:${formData.linkedOrderId}` : ''}
+                  onChange={(e) => handleOrderSelect(e.target.value)}
                   className="w-full px-3 py-2 border border-cyan-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent bg-white"
                   disabled={editingTrip !== null}
                 >
-                  <option value="">-- Create trip manually (no delivery order) --</option>
-                  {deliveryOrders.map((order) => (
-                    <option key={order.id} value={order.id}>
-                      {order.orderNumber} - {order.customer?.name} - {order.containerNumber || 'No container'} - {order.portOfLoading} → {order.deliveryAddress}
-                    </option>
-                  ))}
+                  <option value="">-- Select an Import or Export Order --</option>
+                  {openImportOrders.length > 0 && (
+                    <optgroup label="📥 Import Orders">
+                      {openImportOrders.map((order: any) => (
+                        <option key={order.id} value={`IMPORT:${order.id}`}>
+                          {order.orderNumber} · {order.customer?.name} · {order.containerNumber} · {order.portOfLoading} → {order.deliveryCity || order.deliveryAddress}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                  {openExportOrders.length > 0 && (
+                    <optgroup label="📤 Export Orders">
+                      {openExportOrders.map((order: any) => (
+                        <option key={order.id} value={`EXPORT:${order.id}`}>
+                          {order.orderNumber} · {order.customer?.name} · BK: {order.bookingNumber} · {order.pickupCity || order.pickupAddress} → {order.portOfDischarge}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
                 </select>
-                {formData.deliveryOrderId && (
-                  <div className="mt-3 p-3 bg-cyan-100 rounded-lg">
-                    <p className="text-sm font-semibold text-cyan-900 mb-1">✓ Auto-filled from delivery order:</p>
-                    <ul className="text-xs text-cyan-800 space-y-1 ml-4">
-                      <li>• Customer</li>
-                      <li>• Container (if found in system)</li>
-                      <li>• Pickup Location (port)</li>
-                      <li>• Dropoff Location (delivery address)</li>
-                      <li>• Notes (order details & instructions)</li>
-                    </ul>
-                  </div>
-                )}
+
                 {editingTrip && (
                   <p className="mt-2 text-sm text-gray-600">
-                    ℹ️ Delivery order cannot be changed when editing an existing trip.
+                    ℹ️ Linked order cannot be changed when editing an existing trip.
                   </p>
                 )}
               </div>
@@ -394,17 +441,56 @@ export default function TripsPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Container *
+                  Container
+                </label>
+                {formData.linkedOrderType === 'IMPORT' ? (
+                  <div className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-700 text-sm">
+                    {containers.find((c) => c.id === formData.containerId)?.label ?? 'Container from import order'}
+                  </div>
+                ) : formData.linkedOrderType === 'EXPORT' ? (() => {
+                  const expOrder = openExportOrders.find((o: any) => o.id === formData.linkedOrderId);
+                  const sizeLabel = expOrder ? (CHASSIS_SIZE_LABELS[expOrder.containerSize as keyof typeof CHASSIS_SIZE_LABELS] ?? expOrder.containerSize) : '';
+                  const typeLabel = expOrder?.containerType ?? '';
+                  return (
+                    <div className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-sm">
+                      {expOrder ? (
+                        <span className="text-gray-700 font-medium">{sizeLabel} · {typeLabel}</span>
+                      ) : null}
+                      <span className="text-gray-400 italic ml-1">{expOrder ? ' — number assigned from terminal' : 'Will be assigned from terminal API'}</span>
+                    </div>
+                  );
+                })() : (
+                  <div className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-400 text-sm italic">
+                    Select an order above to assign a container
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Chassis
                 </label>
                 <select
-                  required
-                  value={formData.containerId}
-                  onChange={(e) => setFormData({ ...formData, containerId: e.target.value })}
+                  value={formData.chassisId}
+                  onChange={(e) => setFormData({ ...formData, chassisId: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
-                  <option value="">Select container...</option>
-                  {containers.map((c) => (
-                    <option key={c.id} value={c.id}>{c.label}</option>
+                  <option value="">
+                  {formData.linkedContainerSize
+                    ? `-- No chassis (showing ${CHASSIS_SIZE_LABELS[formData.linkedContainerSize as keyof typeof CHASSIS_SIZE_LABELS] ?? formData.linkedContainerSize} only) --`
+                    : '-- No chassis --'}
+                </option>
+                  {editingTrip && formData.chassisId && !availableChassis.find((c: any) => c.id === formData.chassisId) && (
+                    <option value={formData.chassisId}>
+                      {(editingTrip as any).chassis
+                        ? `${(editingTrip as any).chassis.number} (${CHASSIS_SIZE_LABELS[(editingTrip as any).chassis.size as keyof typeof CHASSIS_SIZE_LABELS] ?? (editingTrip as any).chassis.size}) — currently assigned`
+                        : 'Current chassis'}
+                    </option>
+                  )}
+                  {availableChassis.map((c: any) => (
+                    <option key={c.id} value={c.id}>
+                      {c.number} — {CHASSIS_SIZE_LABELS[c.size as keyof typeof CHASSIS_SIZE_LABELS] ?? c.size}
+                    </option>
                   ))}
                 </select>
               </div>

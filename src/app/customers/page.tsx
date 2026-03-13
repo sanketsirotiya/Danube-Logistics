@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useCustomers } from '@/lib/hooks/customers/useCustomers';
 import { useCreateCustomer } from '@/lib/hooks/customers/useCreateCustomer';
@@ -511,8 +512,8 @@ export default function CustomersPage() {
                 </tr>
               ) : (
                 customers.map((customer) => (
-                  <>
-                    <tr key={customer.id} id={`customer-row-${customer.id}`} className={`transition-colors duration-150 ${expandedCustomerId === customer.id ? 'bg-purple-50 border-l-4 border-l-purple-500' : 'hover:bg-purple-50'}`}>
+                  <React.Fragment key={customer.id}>
+                    <tr id={`customer-row-${customer.id}`} className={`transition-colors duration-150 ${expandedCustomerId === customer.id ? 'bg-purple-50 border-l-4 border-l-purple-500' : 'hover:bg-purple-50'}`}>
                       {/* Company + Payment Terms */}
                       <td className="px-5 py-4">
                         <div className="font-semibold text-gray-900">{customer.name}</div>
@@ -557,6 +558,7 @@ export default function CustomersPage() {
                       {/* Actions */}
                       <td className="px-5 py-4 whitespace-nowrap text-sm font-medium">
                         <button onClick={() => handleEdit(customer)} className="text-blue-600 hover:text-blue-800 font-semibold mr-3 transition-colors">Edit</button>
+                        <Link href={`/customers/${customer.id}`} className="text-emerald-600 hover:text-emerald-800 font-semibold mr-3 transition-colors">View Orders</Link>
                         <button
                           onClick={() => setExpandedCustomerId(expandedCustomerId === customer.id ? null : customer.id)}
                           className="text-purple-600 hover:text-purple-800 font-semibold mr-3 transition-colors inline-flex items-center gap-1"
@@ -571,13 +573,13 @@ export default function CustomersPage() {
                       </td>
                     </tr>
                     {expandedCustomerId === customer.id && (
-                      <tr key={`${customer.id}-locations`}>
+                      <tr>
                         <td colSpan={4} className="p-0">
                           <CustomerLocationsPanel customerId={customer.id} onClose={() => setExpandedCustomerId(null)} />
                         </td>
                       </tr>
                     )}
-                  </>
+                  </React.Fragment>
                 ))
               )}
             </tbody>

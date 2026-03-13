@@ -55,6 +55,7 @@ export async function PUT(
       truckId,
       driverId,
       containerId,
+      chassisId,
       pickupLocation,
       pickupTime,
       dropoffLocation,
@@ -78,55 +79,67 @@ export async function PUT(
       );
     }
 
-    const trip = await prisma.trip.update({
-      where: { id },
-      data: {
-        customerId: customerId || existingTrip.customerId,
-        truckId: truckId || existingTrip.truckId,
-        driverId: driverId || existingTrip.driverId,
-        containerId: containerId || existingTrip.containerId,
-        pickupLocation: pickupLocation || existingTrip.pickupLocation,
-        pickupTime: pickupTime !== undefined
-          ? (pickupTime ? new Date(pickupTime) : null)
-          : existingTrip.pickupTime,
-        dropoffLocation: dropoffLocation || existingTrip.dropoffLocation,
-        dropoffTime: dropoffTime !== undefined
-          ? (dropoffTime ? new Date(dropoffTime) : null)
-          : existingTrip.dropoffTime,
-        status: status || existingTrip.status,
-        distanceMiles: distanceMiles !== undefined
-          ? (distanceMiles ? parseFloat(distanceMiles) : null)
-          : existingTrip.distanceMiles,
-        chassisReceivedAt: chassisReceivedAt !== undefined
-          ? (chassisReceivedAt ? new Date(chassisReceivedAt) : null)
-          : existingTrip.chassisReceivedAt,
-        chassisReturnedAt: chassisReturnedAt !== undefined
-          ? (chassisReturnedAt ? new Date(chassisReturnedAt) : null)
-          : existingTrip.chassisReturnedAt,
-        notes: notes !== undefined ? notes : existingTrip.notes,
-      },
-      include: {
-        customer: {
-          select: {
-            name: true,
-          },
+    const newStatus = status || existingTrip.status;
+    const isTripEnding = ['COMPLETED', 'CANCELLED'].includes(newStatus) &&
+      !['COMPLETED', 'CANCELLED'].includes(existingTrip.status);
+    const newChassisId = chassisId !== undefined ? (chassisId || null) : existingTrip.chassisId;
+    const chassisChanged = chassisId !== undefined && chassisId !== existingTrip.chassisId;
+
+    const [trip] = await prisma.$transaction(async (tx) => {
+      const updatedTrip = await tx.trip.update({
+        where: { id },
+        data: {
+          customerId: customerId || existingTrip.customerId,
+          truckId: truckId || existingTrip.truckId,
+          driverId: driverId || existingTrip.driverId,
+          containerId: containerId !== undefined ? (containerId || null) : existingTrip.containerId,
+          chassisId: newChassisId,
+          pickupLocation: pickupLocation || existingTrip.pickupLocation,
+          pickupTime: pickupTime !== undefined
+            ? (pickupTime ? new Date(pickupTime) : null)
+            : existingTrip.pickupTime,
+          dropoffLocation: dropoffLocation || existingTrip.dropoffLocation,
+          dropoffTime: dropoffTime !== undefined
+            ? (dropoffTime ? new Date(dropoffTime) : null)
+            : existingTrip.dropoffTime,
+          status: newStatus,
+          distanceMiles: distanceMiles !== undefined
+            ? (distanceMiles ? parseFloat(distanceMiles) : null)
+            : existingTrip.distanceMiles,
+          chassisReceivedAt: chassisReceivedAt !== undefined
+            ? (chassisReceivedAt ? new Date(chassisReceivedAt) : null)
+            : existingTrip.chassisReceivedAt,
+          chassisReturnedAt: chassisReturnedAt !== undefined
+            ? (chassisReturnedAt ? new Date(chassisReturnedAt) : null)
+            : existingTrip.chassisReturnedAt,
+          notes: notes !== undefined ? notes : existingTrip.notes,
         },
-        truck: {
-          select: {
-            plate: true,
-          },
+        include: {
+          customer: { select: { name: true } },
+          truck: { select: { plate: true } },
+          driver: { select: { name: true } },
+          container: { select: { number: true } },
+          chassis: { select: { id: true, number: true, size: true } },
         },
-        driver: {
-          select: {
-            name: true,
-          },
-        },
-        container: {
-          select: {
-            number: true,
-          },
-        },
-      },
+      });
+
+      // Release old chassis if trip is ending or chassis changed
+      if (existingTrip.chassisId && (isTripEnding || (chassisChanged && existingTrip.chassisId !== newChassisId))) {
+        await tx.chassis.update({
+          where: { id: existingTrip.chassisId },
+          data: { isAvailable: true },
+        });
+      }
+
+      // Lock new chassis if chassis changed (and not ending)
+      if (chassisChanged && newChassisId && !isTripEnding) {
+        await tx.chassis.update({
+          where: { id: newChassisId },
+          data: { isAvailable: false },
+        });
+      }
+
+      return [updatedTrip];
     });
 
     // Log status change
@@ -197,8 +210,15 @@ export async function DELETE(
       );
     }
 
-    await prisma.trip.delete({
-      where: { id },
+    await prisma.$transaction(async (tx) => {
+      await tx.trip.delete({ where: { id } });
+      // Release chassis if one was assigned
+      if (existingTrip.chassisId) {
+        await tx.chassis.update({
+          where: { id: existingTrip.chassisId },
+          data: { isAvailable: true },
+        });
+      }
     });
 
     return NextResponse.json({ message: 'Trip deleted successfully' });

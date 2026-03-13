@@ -46,6 +46,15 @@ enum ContainerSize {
   FORTY_FIVE_FT
 }
 
+enum ChassisSize {
+  TWENTY_FT
+  FORTY_FT
+  FORTY_FIVE_FT
+  FORTY_EIGHT_FT
+  FIFTY_THREE_FT
+  EXTENDABLE
+}
+
 enum ContainerType {
   DRY
   REEFER
@@ -91,6 +100,11 @@ enum DeliveryPriority {
   STANDARD
   URGENT
   CRITICAL
+}
+
+enum OrderType {
+  IMPORT
+  EXPORT
 }
 
 enum SyncStatus {
@@ -152,7 +166,8 @@ model Customer {
   rates           CustomerRate[]
   invoices        Invoice[]
   users           User[]
-  deliveryOrders  DeliveryOrder[]
+  importOrders    ImportOrder[]
+  exportOrders    ExportOrder[]
   locations       CustomerLocation[]
 
   @@index([pricingType])
@@ -339,7 +354,8 @@ model Trip {
   customerId        String     @map("customer_id")
   truckId           String     @map("truck_id")
   driverId          String     @map("driver_id")
-  containerId       String     @map("container_id")
+  containerId       String?    @map("container_id")
+  chassisId         String?    @map("chassis_id")
   pickupLocation    String     @map("pickup_location")
   pickupTime        DateTime?  @map("pickup_time")
   dropoffLocation   String     @map("dropoff_location")
@@ -357,9 +373,11 @@ model Trip {
   customer          Customer         @relation(fields: [customerId], references: [id])
   truck             Truck            @relation(fields: [truckId], references: [id])
   driver            Driver           @relation(fields: [driverId], references: [id])
-  container         Container        @relation(fields: [containerId], references: [id])
+  container         Container?       @relation(fields: [containerId], references: [id])
+  chassis           Chassis?         @relation(fields: [chassisId], references: [id])
   invoice           Invoice?
-  deliveryOrder     DeliveryOrder?
+  importOrder       ImportOrder?
+  exportOrder       ExportOrder?
   expenses          TripExpense[]
   documents         TripDocument[]
   activityLogs      TripActivityLog[]
@@ -467,50 +485,85 @@ model Invoice {
   @@map("invoices")
 }
 
-model DeliveryOrder {
-  id                  String              @id @default(uuid())
-  orderNumber         String              @unique @map("order_number")
-  customerId          String              @map("customer_id")
-  containerNumber     String?             @map("container_number")
-  containerSize       ContainerSize?      @map("container_size")
-  containerType       ContainerType?      @map("container_type")
-  orderType           String              @default("IMPORT") @map("order_type")
-  status              DeliveryOrderStatus @default(PENDING)
-  priority            DeliveryPriority    @default(STANDARD)
+model ShipLine {
+  id           String        @id @default(uuid())
+  name         String
+  code         String?       @unique
+  active       Boolean       @default(true)
+  notes        String?
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+
+  importOrders ImportOrder[]
+  exportOrders ExportOrder[]
+
+  @@index([active])
+  @@map("ship_lines")
+}
+
+model Chassis {
+  id          String      @id @default(uuid())
+  number      String      @unique
+  size        ChassisSize
+  isAvailable Boolean     @default(true) @map("is_available")
+  isActive    Boolean     @default(true) @map("is_active")
+  notes       String?
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+
+  trips       Trip[]
+
+  @@index([isAvailable])
+  @@index([isActive])
+  @@map("chassis")
+}
+
+model ImportOrder {
+  id                     String              @id @default(uuid())
+  orderNumber            String              @unique @map("order_number")
+  customerId             String              @map("customer_id")
+  status                 DeliveryOrderStatus @default(PENDING)
+  priority               DeliveryPriority    @default(STANDARD)
+
+  // Container (all required for import)
+  containerNumber        String              @map("container_number")
+  containerSize          ContainerSize       @map("container_size")
+  containerType          ContainerType       @map("container_type")
 
   // Locations
-  portOfLoading       String?             @map("port_of_loading")
-  deliveryAddress     String              @map("delivery_address")
-  deliveryCity        String?             @map("delivery_city")
-  deliveryState       String?             @map("delivery_state")
-  deliveryZip         String?             @map("delivery_zip")
+  portOfLoading          String              @map("port_of_loading")
+  deliveryAddress        String              @map("delivery_address")
+  deliveryCity           String?             @map("delivery_city")
+  deliveryState          String?             @map("delivery_state")
+  deliveryZip            String?             @map("delivery_zip")
 
   // Dates
-  requestedPickupDate DateTime?           @map("requested_pickup_date")
-  requestedDeliveryDate DateTime?         @map("requested_delivery_date")
-  actualPickupDate    DateTime?           @map("actual_pickup_date")
-  actualDeliveryDate  DateTime?           @map("actual_delivery_date")
+  containerAvailableDate DateTime?           @map("container_available_date")
+  requestedDeliveryDate  DateTime?           @map("requested_delivery_date")
+  actualPickupDate       DateTime?           @map("actual_pickup_date")
+  actualDeliveryDate     DateTime?           @map("actual_delivery_date")
 
   // References
-  customerReference   String?             @map("customer_reference")
-  bookingNumber       String?             @map("booking_number")
-  billOfLading        String?             @map("bill_of_lading")
+  customerReference      String              @map("customer_reference")
+  billOfLading           String?             @map("bill_of_lading")
+
+  // Ship Line
+  shipLineId             String?             @map("ship_line_id")
 
   // Assignment
-  tripId              String?             @unique @map("trip_id")
-  assignedDriverId    String?             @map("assigned_driver_id")
-  assignedTruckId     String?             @map("assigned_truck_id")
+  tripId                 String?             @unique @map("trip_id")
+  assignedDriverId       String?             @map("assigned_driver_id")
+  assignedTruckId        String?             @map("assigned_truck_id")
 
-  // Additional Details
-  weight              Decimal?            @db.Decimal(10, 2)
-  notes               String?
+  // Additional
+  notes                  String?
 
-  createdAt           DateTime            @default(now()) @map("created_at")
-  updatedAt           DateTime            @updatedAt @map("updated_at")
+  createdAt              DateTime            @default(now()) @map("created_at")
+  updatedAt              DateTime            @updatedAt @map("updated_at")
 
-  // Relations
-  customer            Customer            @relation(fields: [customerId], references: [id])
-  trip                Trip?               @relation(fields: [tripId], references: [id])
+  customer               Customer            @relation(fields: [customerId], references: [id])
+  trip                   Trip?               @relation(fields: [tripId], references: [id])
+  shipLine               ShipLine?           @relation(fields: [shipLineId], references: [id])
 
   @@index([customerId])
   @@index([status])
@@ -518,7 +571,63 @@ model DeliveryOrder {
   @@index([orderNumber])
   @@index([containerNumber])
   @@index([requestedDeliveryDate])
-  @@map("delivery_orders")
+  @@index([shipLineId])
+  @@map("import_orders")
+}
+
+model ExportOrder {
+  id                    String              @id @default(uuid())
+  orderNumber           String              @unique @map("order_number")
+  customerId            String              @map("customer_id")
+  status                DeliveryOrderStatus @default(PENDING)
+  priority              DeliveryPriority    @default(STANDARD)
+
+  // Booking (required for export)
+  bookingNumber         String              @map("booking_number")
+
+  // Container
+  containerSize         ContainerSize       @map("container_size")
+  containerType         ContainerType       @map("container_type")
+
+  // Locations
+  pickupAddress         String              @map("pickup_address")
+  pickupCity            String?             @map("pickup_city")
+  pickupState           String?             @map("pickup_state")
+  pickupZip             String?             @map("pickup_zip")
+  portOfDischarge       String              @map("port_of_discharge")
+
+  // Dates
+  requestedPickupDate   DateTime?           @map("requested_pickup_date")
+  requestedDeliveryDate DateTime?           @map("requested_delivery_date")
+  actualPickupDate      DateTime?           @map("actual_pickup_date")
+  actualDeliveryDate    DateTime?           @map("actual_delivery_date")
+
+  // Ship Line
+  shipLineId            String?             @map("ship_line_id")
+
+  // Assignment
+  tripId                String?             @unique @map("trip_id")
+  assignedDriverId      String?             @map("assigned_driver_id")
+  assignedTruckId       String?             @map("assigned_truck_id")
+
+  // Additional
+  notes                 String?
+
+  createdAt             DateTime            @default(now()) @map("created_at")
+  updatedAt             DateTime            @updatedAt @map("updated_at")
+
+  customer              Customer            @relation(fields: [customerId], references: [id])
+  trip                  Trip?               @relation(fields: [tripId], references: [id])
+  shipLine              ShipLine?           @relation(fields: [shipLineId], references: [id])
+
+  @@index([customerId])
+  @@index([status])
+  @@index([priority])
+  @@index([orderNumber])
+  @@index([bookingNumber])
+  @@index([requestedDeliveryDate])
+  @@index([shipLineId])
+  @@map("export_orders")
 }
 
 model ApiSyncLog {

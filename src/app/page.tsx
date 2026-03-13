@@ -77,15 +77,6 @@ export default function Home() {
 
       {/* Management Modules */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Operations Management
-          </h2>
-          <p className="text-gray-600 max-w-2xl mx-auto text-sm">
-            Access all your logistics management tools from a unified platform
-          </p>
-        </div>
-
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Link
             href="/trucks"
@@ -127,16 +118,29 @@ export default function Home() {
           </Link>
 
           <Link
-            href="/delivery-orders"
-            className="group bg-white hover:bg-gradient-to-br hover:from-cyan-50 hover:to-cyan-100/50 border border-gray-200 hover:border-cyan-300 rounded-xl p-4 transition-all duration-200 hover:shadow-lg"
+            href="/import-orders"
+            className="group bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-blue-100/50 border border-gray-200 hover:border-blue-300 rounded-xl p-4 transition-all duration-200 hover:shadow-lg"
           >
-            <div className="w-10 h-10 bg-cyan-100 group-hover:bg-cyan-500 rounded-lg flex items-center justify-center mb-3 transition-colors">
-              <svg className="w-6 h-6 text-cyan-600 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            <div className="w-10 h-10 bg-blue-100 group-hover:bg-blue-500 rounded-lg flex items-center justify-center mb-3 transition-colors">
+              <svg className="w-6 h-6 text-blue-600 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </div>
-            <h3 className="font-semibold text-gray-900 mb-0.5 text-sm">Delivery Orders</h3>
-            <p className="text-xs text-gray-500">Port to Customer</p>
+            <h3 className="font-semibold text-gray-900 mb-0.5 text-sm">Import Orders</h3>
+            <p className="text-xs text-gray-500">Port → Customer</p>
+          </Link>
+
+          <Link
+            href="/export-orders"
+            className="group bg-white hover:bg-gradient-to-br hover:from-emerald-50 hover:to-emerald-100/50 border border-gray-200 hover:border-emerald-300 rounded-xl p-4 transition-all duration-200 hover:shadow-lg"
+          >
+            <div className="w-10 h-10 bg-emerald-100 group-hover:bg-emerald-500 rounded-lg flex items-center justify-center mb-3 transition-colors">
+              <svg className="w-6 h-6 text-emerald-600 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+              </svg>
+            </div>
+            <h3 className="font-semibold text-gray-900 mb-0.5 text-sm">Export Orders</h3>
+            <p className="text-xs text-gray-500">Customer → Port</p>
           </Link>
 
           <Link
@@ -203,6 +207,32 @@ export default function Home() {
             </div>
             <h3 className="font-semibold text-gray-900 mb-0.5 text-sm">Ports & Terminals</h3>
             <p className="text-xs text-gray-500">Port Locations</p>
+          </Link>
+
+          <Link
+            href="/shiplines"
+            className="group bg-white hover:bg-gradient-to-br hover:from-sky-50 hover:to-sky-100/50 border border-gray-200 hover:border-sky-300 rounded-xl p-4 transition-all duration-200 hover:shadow-lg"
+          >
+            <div className="w-10 h-10 bg-sky-100 group-hover:bg-sky-500 rounded-lg flex items-center justify-center mb-3 transition-colors">
+              <svg className="w-6 h-6 text-sky-600 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
+              </svg>
+            </div>
+            <h3 className="font-semibold text-gray-900 mb-0.5 text-sm">Ship Lines</h3>
+            <p className="text-xs text-gray-500">Carriers & Lines</p>
+          </Link>
+
+          <Link
+            href="/chassis"
+            className="group bg-white hover:bg-gradient-to-br hover:from-indigo-50 hover:to-indigo-100/50 border border-gray-200 hover:border-indigo-300 rounded-xl p-4 transition-all duration-200 hover:shadow-lg"
+          >
+            <div className="w-10 h-10 bg-indigo-100 group-hover:bg-indigo-500 rounded-lg flex items-center justify-center mb-3 transition-colors">
+              <svg className="w-6 h-6 text-indigo-600 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+              </svg>
+            </div>
+            <h3 className="font-semibold text-gray-900 mb-0.5 text-sm">Available Chassis</h3>
+            <p className="text-xs text-gray-500">Chassis Units</p>
           </Link>
 
           <Link

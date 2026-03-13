@@ -23,7 +23,11 @@ async function main() {
   await prisma.truck.deleteMany();
   await prisma.customerRate.deleteMany();
   await prisma.customerLocation.deleteMany();
+  await prisma.importOrder.deleteMany();
+  await prisma.exportOrder.deleteMany();
   await prisma.customer.deleteMany();
+  await prisma.shipLine.deleteMany();
+  await prisma.chassis.deleteMany();
   await prisma.chargeType.deleteMany();
   console.log('✅ Cleared existing data\n');
 
@@ -502,61 +506,7 @@ async function main() {
   });
   console.log(`✅ Created 5 NJ/NY terminals\n`);
 
-  // 8. Create Containers
-  console.log('📦 Creating containers...');
-  await prisma.container.createMany({
-    data: [
-      {
-        number: 'ABCU1234567',
-        size: 'FORTY_FT',
-        type: 'DRY',
-        terminalId: terminal1.id,
-        available: true,
-        condition: 'GOOD',
-        lastInspectionDate: new Date('2026-01-15'),
-      },
-      {
-        number: 'MSCU2345678',
-        size: 'FORTY_FT',
-        type: 'DRY',
-        terminalId: terminal1.id,
-        available: true,
-        condition: 'GOOD',
-        lastInspectionDate: new Date('2026-01-20'),
-      },
-      {
-        number: 'HLCU3456789',
-        size: 'TWENTY_FT',
-        type: 'DRY',
-        terminalId: terminal2.id,
-        available: true,
-        condition: 'GOOD',
-        lastInspectionDate: new Date('2026-01-25'),
-      },
-      {
-        number: 'OOLU4567890',
-        size: 'FORTY_FT',
-        type: 'REEFER',
-        terminalId: terminal2.id,
-        available: true,
-        condition: 'GOOD',
-        lastInspectionDate: new Date('2026-02-01'),
-      },
-      {
-        number: 'CMAU5678901',
-        size: 'FORTY_FT',
-        type: 'DRY',
-        terminalId: terminal1.id,
-        available: false,
-        condition: 'DAMAGED',
-        lastInspectionDate: new Date('2026-01-10'),
-      },
-    ],
-  });
-  console.log(`✅ Created 5 containers\n`);
-
-  // 9. Fetch created resources for trips
-  const allContainers = await prisma.container.findMany();
+  // 8. Fetch created resources for trips
   const allTrucks = await prisma.truck.findMany({ where: { status: 'AVAILABLE' } });
   const allDrivers = await prisma.driver.findMany({ where: { status: 'ACTIVE' } });
 
@@ -567,7 +517,6 @@ async function main() {
       customerId: customer1.id,
       truckId: allTrucks[0].id,
       driverId: allDrivers[0].id,
-      containerId: allContainers[0].id,
       pickupLocation: 'Port of Los Angeles Terminal',
       pickupTime: new Date('2026-02-10T08:00:00'),
       dropoffLocation: 'ABC Logistics Warehouse - 123 Harbor Blvd',
@@ -584,7 +533,6 @@ async function main() {
       customerId: customer2.id,
       truckId: allTrucks[1].id,
       driverId: allDrivers[1].id,
-      containerId: allContainers[1].id,
       pickupLocation: 'Port of Long Beach Terminal',
       pickupTime: new Date('2026-02-09T14:00:00'),
       dropoffLocation: 'Pacific Imports Facility - 456 Ocean Ave',
@@ -602,7 +550,6 @@ async function main() {
       customerId: customer3.id,
       truckId: allTrucks[2].id,
       driverId: allDrivers[2].id,
-      containerId: allContainers[2].id,
       pickupLocation: 'Port of Los Angeles Terminal',
       pickupTime: new Date('2026-02-08T10:00:00'),
       dropoffLocation: 'Global Trade Depot - 789 Port Rd',
@@ -620,7 +567,6 @@ async function main() {
       customerId: customer1.id,
       truckId: allTrucks[3].id,
       driverId: allDrivers[0].id,
-      containerId: allContainers[3].id,
       pickupLocation: 'Port of Long Beach Terminal',
       pickupTime: new Date('2026-02-11T09:00:00'),
       dropoffLocation: 'ABC Logistics Warehouse - 123 Harbor Blvd',
@@ -728,6 +674,38 @@ async function main() {
 
   console.log(`✅ Created sample invoices\n`);
 
+  // Ship Lines
+  console.log('🚢 Creating ship lines...');
+  await prisma.shipLine.createMany({
+    data: [
+      { name: 'MSC Mediterranean Shipping Company', code: 'MSC', active: true },
+      { name: 'Maersk Line', code: 'MAERSK', active: true },
+      { name: 'Hapag-Lloyd', code: 'HAPAG', active: true },
+      { name: 'CMA CGM', code: 'CMA', active: true },
+      { name: 'Ocean Network Express (ONE)', code: 'ONE', active: true },
+      { name: 'Atlantic Container Line (ACL)', code: 'ACL', active: true },
+      { name: 'ZIM Integrated Shipping Services', code: 'ZIM', active: true },
+      { name: 'COSCO Shipping Lines', code: 'COSCO', active: true },
+      { name: 'Evergreen Marine Corporation', code: 'EVERGREEN', active: true },
+      { name: 'Yang Ming Marine Transport', code: 'YML', active: true },
+      { name: 'New York Container Line (NYCL)', code: 'NYCL', active: true },
+    ],
+  });
+  console.log('✅ Created 11 ship lines\n');
+
+  // Chassis
+  console.log('🚛 Creating chassis...');
+  await prisma.chassis.createMany({
+    data: [
+      { number: 'CHAS-20-001', size: 'TWENTY_FT', isAvailable: true },
+      { number: 'CHAS-40-001', size: 'FORTY_FT', isAvailable: true },
+      { number: 'CHAS-40-002', size: 'FORTY_FT', isAvailable: true },
+      { number: 'CHAS-53-001', size: 'FIFTY_THREE_FT', isAvailable: true },
+      { number: 'CHAS-EXT-001', size: 'EXTENDABLE', isAvailable: true },
+    ],
+  });
+  console.log('✅ Created 5 chassis\n');
+
   console.log('✨ Seed completed successfully!\n');
   console.log('📊 Summary:');
   console.log('   • 7 charge types');
@@ -737,8 +715,9 @@ async function main() {
   console.log('   • 10 trucks (varied makes & statuses)');
   console.log('   • 3 drivers');
   console.log('   • 5 users (all password: password123)');
+  console.log('   • 11 ship lines');
+  console.log('   • 5 chassis');
   console.log('   • 2 terminals');
-  console.log('   • 5 containers');
   console.log('   • 4 sample trips');
   console.log('   • 2 sample invoices (1 paid, 1 pending)\n');
   console.log('🔐 Test Users:');

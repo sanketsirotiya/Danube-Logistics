@@ -39,7 +39,21 @@ export async function GET() {
             type: true,
           },
         },
-        deliveryOrder: {
+        chassis: {
+          select: {
+            id: true,
+            number: true,
+            size: true,
+          },
+        },
+        importOrder: {
+          select: {
+            id: true,
+            orderNumber: true,
+            status: true,
+          },
+        },
+        exportOrder: {
           select: {
             id: true,
             orderNumber: true,
@@ -70,11 +84,13 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
 
     const {
-      deliveryOrderId,
+      importOrderId,
+      exportOrderId,
       customerId,
       truckId,
       driverId,
       containerId,
+      chassisId,
       pickupLocation,
       pickupTime,
       dropoffLocation,
@@ -87,72 +103,71 @@ export async function POST(request: NextRequest) {
     } = body;
 
     // Validation
-    if (!customerId || !truckId || !driverId || !containerId || !pickupLocation || !dropoffLocation) {
+    if (!customerId || !truckId || !driverId || !pickupLocation || !dropoffLocation) {
       return NextResponse.json(
-        { error: 'Customer, truck, driver, container, pickup and dropoff locations are required' },
+        { error: 'Customer, truck, driver, pickup and dropoff locations are required' },
         { status: 400 }
       );
     }
 
-    const trip = await prisma.trip.create({
-      data: {
-        customerId,
-        truckId,
-        driverId,
-        containerId,
-        pickupLocation,
-        pickupTime: pickupTime ? new Date(pickupTime) : null,
-        dropoffLocation,
-        dropoffTime: dropoffTime ? new Date(dropoffTime) : null,
-        status: status || 'SCHEDULED',
-        distanceMiles: distanceMiles ? parseFloat(distanceMiles) : null,
-        chassisReceivedAt: chassisReceivedAt ? new Date(chassisReceivedAt) : null,
-        chassisReturnedAt: chassisReturnedAt ? new Date(chassisReturnedAt) : null,
-        notes: notes || null,
-      },
-      include: {
-        customer: {
-          select: {
-            name: true,
-          },
+    const [trip] = await prisma.$transaction(async (tx) => {
+      const newTrip = await tx.trip.create({
+        data: {
+          customerId,
+          truckId,
+          driverId,
+          containerId: containerId || null,
+          chassisId: chassisId || null,
+          pickupLocation,
+          pickupTime: pickupTime ? new Date(pickupTime) : null,
+          dropoffLocation,
+          dropoffTime: dropoffTime ? new Date(dropoffTime) : null,
+          status: status || 'SCHEDULED',
+          distanceMiles: distanceMiles ? parseFloat(distanceMiles) : null,
+          chassisReceivedAt: chassisReceivedAt ? new Date(chassisReceivedAt) : null,
+          chassisReturnedAt: chassisReturnedAt ? new Date(chassisReturnedAt) : null,
+          notes: notes || null,
         },
-        truck: {
-          select: {
-            plate: true,
-          },
+        include: {
+          customer: { select: { name: true } },
+          truck: { select: { plate: true } },
+          driver: { select: { name: true } },
+          container: { select: { number: true } },
+          chassis: { select: { id: true, number: true, size: true } },
         },
-        driver: {
-          select: {
-            name: true,
-          },
-        },
-        container: {
-          select: {
-            number: true,
-          },
-        },
-      },
+      });
+
+      // Lock the chassis — mark it as in use
+      if (chassisId) {
+        await tx.chassis.update({
+          where: { id: chassisId },
+          data: { isAvailable: false },
+        });
+      }
+
+      return [newTrip];
     });
 
-    // If linked to a delivery order, update the delivery order
-    if (deliveryOrderId) {
-      await prisma.deliveryOrder.update({
-        where: { id: deliveryOrderId },
-        data: {
-          tripId: trip.id,
-          status: 'ASSIGNED',
-          assignedDriverId: driverId,
-          assignedTruckId: truckId,
-        },
+    // Link to import or export order if provided
+    if (importOrderId) {
+      await prisma.importOrder.update({
+        where: { id: importOrderId },
+        data: { tripId: trip.id, status: 'ASSIGNED', assignedDriverId: driverId, assignedTruckId: truckId },
+      });
+    } else if (exportOrderId) {
+      await prisma.exportOrder.update({
+        where: { id: exportOrderId },
+        data: { tripId: trip.id, status: 'ASSIGNED', assignedDriverId: driverId, assignedTruckId: truckId },
       });
     }
 
     // Create initial activity log
+    const orderRef = importOrderId ? ' (linked to import order)' : exportOrderId ? ' (linked to export order)' : '';
     await prisma.tripActivityLog.create({
       data: {
         tripId: trip.id,
         activityType: 'STATUS_CHANGE',
-        description: `Trip created with status ${trip.status}${deliveryOrderId ? ' (linked to delivery order)' : ''}`,
+        description: `Trip created with status ${trip.status}${orderRef}`,
         newValue: trip.status,
         performedBy: 'System',
       },

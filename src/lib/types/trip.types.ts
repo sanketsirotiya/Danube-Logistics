@@ -6,6 +6,7 @@ export interface Trip {
   truckId: string;
   driverId: string;
   containerId: string;
+  chassisId?: string | null;
   deliveryOrderId?: string | null;
   pickupLocation: string;
   pickupTime: string | null;
@@ -41,6 +42,11 @@ export interface Trip {
     size: string;
     type: string;
   };
+  chassis?: {
+    id: string;
+    number: string;
+    size: string;
+  } | null;
   deliveryOrder?: {
     id: string;
     orderNumber: string;
@@ -54,6 +60,7 @@ export interface CreateTripInput {
   truckId: string;
   driverId: string;
   containerId: string;
+  chassisId?: string;
   pickupLocation: string;
   pickupTime?: string;
   dropoffLocation: string;

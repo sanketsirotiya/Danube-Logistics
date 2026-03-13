@@ -1,7 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "Bash(taskkill:*)"
+      "Bash(taskkill:*)",
+      "Bash(npx prisma:*)",
+      "Bash(npm install:*)",
+      "Bash(openssl rand:*)",
+      "Bash(npm run:*)",
+      "Bash(psql \"postgresql://postgres:superuser@localhost:5432/danube_logistics\" -c \"SELECT number, size, type FROM containers ORDER BY created_at;\")"
     ]
   }
 }
